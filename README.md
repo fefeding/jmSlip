@@ -1,4 +1,4 @@
-jmSlip
+jmSlip/slip.js
 =========
 
 一个简单的WEB前端滑动组件
