@@ -1,0 +1,254 @@
+<!doctype html>
+<html style="height:100%;margin:0;">
+<head>
+<meta charset="utf-8">
+<title>表情</title>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<meta name="format-detection" content="telephone=no" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1, user-scalable=no"/>
+<script src="http://mat1.gtimg.com/www/mobi/js/zepto.min.js"></script>
+<script src="../../src/jmSlip.js"></script>
+
+<style>
+.textarea-comment {
+-webkit-box-flex: 1;
+-webkit-box-sizing: border-box;
+background: #FFF;
+color: #6f757a;
+font-size: 15px;
+height: 60px;
+max-height: 80px;
+overflow: auto;
+overflow-x: hidden;
+outline: none;
+resize: none;
+border: 1px solid #7c8186;
+border-radius: 10px;
+padding: 10px;
+}
+.icon-emoji {
+	background-size: 24px 24px;
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+background-image: url(ico-emoji.png);
+}
+.emojo-select {
+position: relative;
+height: 132px;
+margin: 0 auto;
+overflow: hidden;
+}
+.emoji {
+  display: inline-block;
+  vertical-align: middle;
+  background-image: url(emoji_sprite.png);
+  background-position: -9999px -9999px;
+  background-repeat: no-repeat;
+  width: 42px;
+  height: 42px;
+  background-size: 42px 5000px; 
+}
+
+
+ .widget-comment .emoji-pager {
+  	height: 20px;
+	text-align: center;
+	display: block;
+	width: 100%;
+  }
+.widget-comment .emoji-pager span.cur {
+color: #4d4d4d;
+}
+.widget-comment .emoji-pager span {
+line-height: 20px;
+color: #cdcdcd;
+font-size: 26px;
+}
+</style>
+
+<script>
+	var data = { 
+			113: "[\u5472\u7259]",
+			112: "[\u8c03\u76ae]",
+			127: "[\u6d41\u6c57]",
+			120: "[\u5077\u7b11]",
+			139: "[\u518d\u89c1]",
+			138: "[\u6572\u6253]",
+			140: "[\u64e6\u6c57]",
+			162: "[\u732a\u5934]",
+			163: "[\u73ab\u7470]",
+			105: "[\u6d41\u6cea]",
+			109: "[\u5927\u54ed]",
+			133: "[\u5618]",
+			116: "[\u9177]",
+			118: "[\u6293\u72c2]",
+			149: "[\u59d4\u5c48]",
+			174: "[\u4fbf\u4fbf]",
+			170: "[\u70b8\u5f39]",
+			155: "[\u83dc\u5200]",
+			121: "[\u53ef\u7231]",
+			102: "[\u8272]",
+			106: "[\u5bb3\u7f9e]",
+			104: "[\u5f97\u610f]",
+			119: "[\u5410]",
+			100: "[\u5fae\u7b11]",
+			111: "[\u53d1\u6012]",
+			110: "[\u5c34\u5c2c]",
+			126: "[\u60ca\u6050]",
+			117: "[\u51b7\u6c57]",
+			166: "[\u7231\u5fc3]",
+			165: "[\u793a\u7231]",
+			122: "[\u767d\u773c]",
+			123: "[\u50b2\u6162]",
+			115: "[\u96be\u8fc7]",
+			114: "[\u60ca\u8bb6]",
+			132: "[\u7591\u95ee]",
+			108: "[\u7761]",
+			152: "[\u4eb2\u4eb2]",
+			128: "[\u61a8\u7b11]",
+			190: "[\u7231\u60c5]",
+			136: "[\u8870]",
+			101: "[\u6487\u5634]",
+			151: "[\u9634\u9669]",
+			130: "[\u594b\u6597]",
+			103: "[\u53d1\u5446]",
+			146: "[\u53f3\u54fc\u54fc]",
+			178: "[\u62e5\u62b1]",
+			144: "[\u574f\u7b11]",
+			191: "[\u98de\u543b]",
+			148: "[\u9119\u89c6]",
+			134: "[\u6655]",
+			129: "[\u5927\u5175]",
+			154: "[\u53ef\u601c]",
+			179: "[\u5f3a]",
+			180: "[\u5f31]",
+			181: "[\u63e1\u624b]",
+			182: "[\u80dc\u5229]",
+			183: "[\u62b1\u62f3]",
+			164: "[\u51cb\u8c22]",
+			161: "[\u996d]",
+			168: "[\u86cb\u7cd5]",
+			156: "[\u897f\u74dc]",
+			157: "[\u5564\u9152]",
+			173: "[\u74e2\u866b]",
+			184: "[\u52fe\u5f15]",
+			189: "[/OK]",
+			187: "[\u7231\u4f60]",
+			160: "[\u5496\u5561]",
+			175: "[\u6708\u4eae]",
+			171: "[\u5200]",
+			193: "[\u53d1\u6296]",
+			186: "[\u5dee\u52b2]",
+			185: "[\u62f3\u5934]",
+			167: "[\u5fc3\u788e]",
+			176: "[\u592a\u9633]",
+			177: "[\u793c\u7269]",
+			172: "[\u8db3\u7403]",
+			137: "[\u9ab7\u9ac5]",
+			199: "[\u6325\u624b]",
+			169: "[\u95ea\u7535]",
+			124: "[\u9965\u997f]",
+			125: "[\u56f0]",
+			131: "[\u5492\u9a82]",
+			135: "[\u6298\u78e8]",
+			141: "[\u62a0\u9f3b]",
+			142: "[\u9f13\u638c]",
+			143: "[\u7cd7\u5927\u4e86]",
+			145: "[\u5de6\u54fc\u54fc]",
+			147: "[\u54c8\u6b20]",
+			150: "[\u5feb\u54ed\u4e86]",
+			153: "[\u5413]",
+			158: "[\u7bee\u7403]",
+			159: "[\u4e52\u4e53]",
+			188: "[/NO]",
+			192: "[\u8df3\u8df3]",
+			194: "[\u6004\u706b]",
+			195: "[\u8f6c\u5708]",
+			196: "[\u78d5\u5934]",
+			197: "[\u56de\u5934]",
+			198: "[\u8df3\u7ef3]",
+			200: "[\u6fc0\u52a8]",
+			201: "[\u8857\u821e]",
+			202: "[\u732e\u543b]",
+			203: "[\u5de6\u592a\u6781]",
+			204: "[\u53f3\u592a\u6781]",
+			107: "[\u95ed\u5634]"
+		};
+
+		function initEmoji() {
+			var container = $('.emoji-container');
+			var html = '<div class="emoji-box" style="display: block;">'+			
+				'<div class="emoji-inner"><div class="emoji-select"><ul style="-webkit-transform:translateX(0px);list-style: none;margin: 0;padding: 0;">';
+			var pagerhtml = '<div class="emoji-pager">';
+			var start = 100;
+			for(var i = 0; i < 5; i++){
+				html += '<li style="float:left;"><div class="page-'+(i+1)+'" style="width: 100%;height: 132px;overflow: hidden;">';
+				for(var j= start; j < start + 20; j++){
+					var index = j-100;
+					html += '<i class="emoji" style="background-position: 50% -'+(index * 44)+'px;float: left;width: 14.2%;height: 42px;-webkit-box-sizing: border-box;" data-emoji="' + j + '"></i>';
+				}
+				start = j;
+				html += '<i class="emoji" style="background-position: 50% -4400px" data-oper="delete"></i></div></li>';
+				pagerhtml += '<span data-index="'+i+'" '+(i==0?' class="cur" ':'')+'>•</span>';
+			}	
+			pagerhtml += '</div>';	
+			html += '</ul></div></div>'+	
+					'<div class="emoji-assist-bar">'+	
+			 		'<a href="javascript:void(0)" class="btn-comment btn-histroy">'+	
+			 		'<span class="icon icon-histroy"></span></a>'+	
+						'<a href="javascript:void(0)" class="btn-comment"></a>'+	
+						'<a href="javascript:void(0)" class="btn-comment"></a>'+	
+					'</div></div>';
+			html += pagerhtml;
+			//选择一个表情
+			container.html(html).on('click','i.emoji', function(){
+				var id = $(this).attr('data-emoji');
+				$('.textarea-comment').append(data[id]);
+			});			
+		}
+		$(function(){
+			initEmoji();
+
+			var selector = $('.emoji-container .emoji-select');
+			var slip = new jmSlip(selector,'page',{
+				direction: 'x',
+				onTouchMove: function(e) {
+					e.preventDefault();
+				},
+				onPageEnd: function(oldIndex, newIndex) {
+					$('.emoji-container .emoji-pager span.cur').toggleClass('cur',false);
+					$('.emoji-container .emoji-pager span[data-index="'+newIndex+'"]').toggleClass('cur',true);
+				}
+			});
+
+			$('.btn-emoji').click(function(){
+				var container = $('.emoji-container');
+				if(container.css('display') == 'none') {
+					container.show();
+					//延时计算滑动组件
+					//因为显示之前表情组件可能没有宽高
+					setTimeout(function(){
+						slip.reset();
+					}, 50);
+				}
+				else {
+					container.hide();
+				}
+			});
+			$(window).resize(function(){
+				slip.reset();
+			});
+		})
+</script>
+</head>
+<body>
+<div class="widget-comment">
+	<div class="textarea-comment" contenteditable="true" placeholder="回复话题"></div>
+		<a href="javascript:void(0)" class="icon icon-emoji btn-emoji" style="display: inline-block;width: 30px;height: 32px;"></a>
+	<div class="emoji-container" style="display:none;"></div>
+</div>
+</body>
+</html>

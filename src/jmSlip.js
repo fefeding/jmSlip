@@ -1,19 +1,31 @@
 /**
- *
+ * 前端滑动组件，主要用于移动端
+ * 支持一些特殊动画效果
+ * 参数说明：
+ * mode： page=翻页效果，scroll=跟随滑动效果，类似于滚动条效果
+ * option: 参数配置
+ * 			direction: 方向参数x=横向，y=纵向
+ *			changeTime: 自动翻页时间，不设置不会自动，单位（毫秒）
+ *			onPageStart: {function} 翻页开始前回调，如果返回false则翻页中止
+ *			onPageEnd: {function} 翻页结束回调
+ *			onTouchStart: {function} 滑动开始，返回false中止滑动
+ *			onTouchMove: {function} 滑动中，返回false中止
+ *			onTouchEnd: {function} 滑动结束，返回false中止
  * @author fefeding
  * @date 2014-11-04
  */
 
 (function(win, doc) {
-	var CSSMAP = ['', '-ms-', '-webkit-', '-o-', '-moz-'];
-	var aniTimeout = 500,//动画时间（毫秒）
-	aniTimeoutSecond = aniTimeout / 1000; //动画时间（秒）
-	var hasTouch = 'ontouchstart' in win;//是否存在touch事件
-	var minOffset = 30;//最小滑动距离表示翻页
-	var touchStart = hasTouch?'touchstart':'mousedown',
+	var CSSMAP = ['', '-ms-', '-webkit-', '-o-', '-moz-'],
+	aniTimeout = 500,//动画时间（毫秒）
+	aniTimeoutSecond = aniTimeout / 1000, //动画时间（秒）
+	hasTouch = 'ontouchstart' in win,//是否存在touch事件
+	minOffset = 30,//最小滑动距离表示翻页
+	touchStart = hasTouch?'touchstart':'mousedown',
 	touchMove = hasTouch?'touchmove':'mousemove',
 	touchEnd = hasTouch?'touchend':'mouseup',
-	touchCancel = hasTouch?'touchcancel':'mouseleave';
+	touchCancel = hasTouch?'touchcancel':'mouseleave',
+	undefined;
 
 	function jmSlip(el, mode, option) {
 		if(typeof mode == 'object') {
@@ -45,6 +57,10 @@
 				this.slipObj = new pageSlip(this);
 				break;
 			}
+			case 'scroll': {
+				this.slipObj = new scrollSlip(this);
+				break;
+			}
 		}
 		css(el, 'overflow', 'hidden');
 		this.reset();
@@ -58,6 +74,7 @@
 		this.touched = false;
 		var startPosition = {x:0,y:0},prePosition = {x:0,y:0},curposition = {x:0,y:0};
 		var ydirection = '',xdirection=''; 
+		var startTime = null;//记录滑动开始时间
 		bind(this.container, touchStart, function(evt) {
 			evt = evt || win.event;		
 			if(self.option && self.option.onTouchStart && typeof self.option.onTouchStart == 'function') {
@@ -70,7 +87,8 @@
 			if(self.interval) {
 				clearTimeout(self.interval);
 			}
-			self.touched = true;
+			self.touched = true;			
+			startTime = evt.timeStamp;
 			var obj = evt.touches && evt.touches.length?evt.touches[0]:evt;
 			prePosition.x = startPosition.x = obj.clientX || obj.pageX;
 			prePosition.y = startPosition.y = obj.clientY || obj.pageY;
@@ -110,8 +128,8 @@
 				var offx = curposition.x - prePosition.x;
 				prePosition.x = curposition.x;
 				prePosition.y = curposition.y;
-				console.log('move: offx:' + offx);
-				console.log('move: offy:' + offy);
+				//console.log('move: offx:' + offx);
+				//console.log('move: offy:' + offy);
 				var off = self.slipObj.offset(offx, offy, evt);	
 				//如果返回中止，则中止此次移动事件
 				if(off === false) {
@@ -139,7 +157,9 @@
 				var offx = curposition.x - startPosition.x;
 				var offy = curposition.y - startPosition.y;	
 
-				self.transition(true);//添加动画			
+				self.transition(true);//添加动画
+				evt.startTime = startTime;//记录滑动起始时间		
+				//console.log(evt);	
 				self.slipObj.end(offx, offy, xdirection, ydirection, evt);
 				
 				self.touched = false;
@@ -186,9 +206,17 @@
 		if(typeof b == 'undefined') b= true;
 		var transition = 'transform 0 ease 0';
 		if(b) transition='transform '+aniTimeoutSecond+'s ease';
-		for(var j=0;j<CSSMAP.length;j++) {
-			css(this.containerInner, CSSMAP[j]+'transition', CSSMAP[j]+transition);
-		}	
+		//当动画为默认的时，效果发生成inner上，否则发生成子元素上
+		if(!this.option.animate || this.option.animate == 'default') {
+			for(var j=0;j<CSSMAP.length;j++) {
+				css(this.containerInner, CSSMAP[j]+'transition', CSSMAP[j]+transition);
+			}	
+		}
+		else {
+			for(var j=0;j<CSSMAP.length;j++) {
+				this.setStyle(CSSMAP[j]+'transition', CSSMAP[j]+transition);
+			}	
+		}
 	}
 
 	//设置子元素
@@ -216,12 +244,24 @@
 	 */
 	pageSlip.prototype.reset = function() {		
 		if(this.instance.option.direction == 'x') {
-			var w = this.instance.container.offsetWidth;
-			css(this.instance.containerInner, 'width', w * this.instance.containerInner.children.length + 'px');
+			var w = this.instance.option.width || this.instance.container.offsetWidth;
+			//如果是默认的翻页方式，则内框的宽度为子元素总宽度和
+			//其它动画效果为容器宽高，使用绝对定位
+			if(!this.instance.option.animate || this.instance.option.animate == 'default') {
+				css(this.instance.containerInner, 'width', w * this.instance.containerInner.children.length + 'px');
+			}
+			else {
+				css(this.instance.containerInner, 'width', w + 'px');
+				css(this.instance.containerInner, 'position', 'relative');
+				this.instance.setStyle('position', 'absolute');
+				this.instance.setStyle('left', '0');
+				this.instance.setStyle('top', '0');
+				//this.instance.setStyle('visibility', 'hidden');
+			}
 			this.instance.setStyle('width', w + 'px');
 		}
 		else {
-			var h = this.instance.container.offsetHeight+ 'px';
+			var h = (this.instance.option.height || this.instance.container.offsetHeight) + 'px';
 			//css(this.instance.containerInner, 'height', h);
 			this.instance.setStyle('height', h);
 		}		
@@ -260,16 +300,31 @@
 	 *
 	 */
 	pageSlip.prototype.move = function(offx, offy) {	
-		if(offx !== false) {
-			var tranX = 'translateX(' + offx + 'px)';		
-			css(this.instance.containerInner,'transform', tranX, CSSMAP);
-			this.offsetX = offx;
+		//普通翻页动画，就是位移
+		if(!this.instance.option.animate || this.instance.option.animate == 'default') {
+			if(offx !== false) {
+				var tranX = 'translateX(' + offx + 'px)';		
+				css(this.instance.containerInner,'transform', tranX, CSSMAP);
+				this.offsetX = offx;
+			}
+			if(offy !== false) {	
+				var tranY = 'translateY(' + offy + 'px)';		
+				css(this.instance.containerInner,'transform', tranY, CSSMAP);
+				this.offsetY = offy;
+			}
 		}
-		if(offy !== false) {	
-			var tranY = 'translateY(' + offy + 'px)';		
-			css(this.instance.containerInner,'transform', tranY, CSSMAP);
-			this.offsetY = offy;
-		}
+ 		else {
+ 			var next = Math.ceil(Math.abs(offx / this.instance.container.offsetWidth));
+ 			var rotate = Math.abs(offx % this.instance.container.offsetWidth) / this.instance.container.offsetWidth * 180;
+ 			if(next > this.page) rotate = -rotate;
+ 			switch(this.instance.option.animate) {
+ 				//翻转效果
+ 				case 'flip': {
+ 					css(this.instance.containerInner.children[this.page],'transform', 'rotateY(' + rotate + 'deg)', CSSMAP);
+ 					css(this.instance.containerInner.children[next],'transform', 'rotateY(' + (-rotate) + 'deg)', CSSMAP);
+ 				}
+ 			}
+ 		}
 	}
 
 	/**
@@ -348,7 +403,7 @@
 	 * @param {int} desPage 跳到当前页
 	 **/
 	pageSlip.prototype.pageEnd = function(srcPage, desPage) {
-		if(srcPage == desPage) return;//如果没有换页则不用处理动画
+		if(srcPage == desPage || srcPage < 0 || desPage < 0) return;//如果没有换页则不用处理动画
 		var pages = this.instance.containerInner.children;
 		var oldpage = pages[srcPage];
 		var page = pages[desPage];		
@@ -361,24 +416,144 @@
 		//把指定了动画效果的元素归位，这样就形动了动画出现
 		toggleClass(page.querySelectorAll('.jmslip-ani'),'jmslip-ani-normal',true);		
 		//先去除动画效果，让元素到动画前位置，再加上动画基类，为了过去的页面改变不出现动画效果。
-		var anis = oldpage.querySelectorAll('.jmslip-ani');
-		toggleClass(anis, 'jmslip-ani', false);
-		toggleClass(anis, 'jmslip-ani-normal', false);
-		setTimeout(function(){
-			toggleClass(anis,'jmslip-ani', true);
-		},20);
+		if(oldpage) {
+			var anis = oldpage.querySelectorAll('.jmslip-ani');
+			toggleClass(anis, 'jmslip-ani', false);
+			toggleClass(anis, 'jmslip-ani-normal', false);
+			setTimeout(function(){
+				toggleClass(anis,'jmslip-ani', true);
+			},20);
+		}
+		
 		setTimeout(function(){
 			var fs = page.querySelectorAll('.jmslip-flash');
 			for(var i=0;i<fs.length;i++) {
 				var cn = 'jmslip-flash'+((i % 3)+1);
 				toggleClass(fs[i], cn, true);
 			}
-			fs = oldpage.querySelectorAll('.jmslip-flash');
-			for(var i=0;i<fs.length;i++) {
-				var cn = 'jmslip-flash'+((i % 3)+1);
-				toggleClass(fs[i], cn, false);
-			}
+			if(oldpage) {
+				fs = oldpage.querySelectorAll('.jmslip-flash');
+				for(var i=0;i<fs.length;i++) {
+					var cn = 'jmslip-flash'+((i % 3)+1);
+					toggleClass(fs[i], cn, false);
+				}
+			}			
 		},500);
+	};
+
+	/**
+	 * 普通平滑滚动对象
+	 *
+	 */
+	function scrollSlip(instance) {
+		this.instance = instance;
+		this.option = instance.option;
+		this.offsetY = 0;
+		this.offsetX = 0;
+	}
+
+	/**
+	 * 重置和初始化滑动对象
+	 *
+	 */
+	scrollSlip.prototype.reset = function() {		
+		var len = this.instance.containerInner.children.length;
+		//横向滑动的话，容器 为每个子元素宽度和
+		if(this.instance.option.direction == 'x') {
+			var w = 0;
+			for(var i=0;i<len;i++) {
+				w += this.instance.containerInner.children[i].offsetWidth;
+			}
+			css(this.instance.containerInner, 'min-width', w + 'px');
+		}
+		//纵向滑动，容器高度为每个子元素高度和
+		else {
+			var h = 0;
+			for(var i=0;i<len;i++) {
+				h += this.instance.containerInner.children[i].offsetHeight;
+			}
+			css(this.instance.containerInner, 'min-height', h + 'px');
+		}
+		//归位
+		this.move(0, 0);
+	}
+
+	/**
+	 * 动画偏移
+	 * 并组止符合条件的事件默认效果，别能在事件全局阻止，会影响业务上的事件
+	 *
+	 */
+	scrollSlip.prototype.offset = function(offx, offy, evt) {
+		if(this.instance.option.direction == 'x') {
+			//只有在横向移动更多才移动
+			if(Math.abs(offx) > Math.abs(offy)) {
+				offx += this.offsetX;
+				evt && evt.preventDefault && evt.preventDefault();//阻止默认响应
+			}
+			else offx = false;
+			offy = false;
+		}
+		else {
+			//只有在横向移动更多才移动
+			if(Math.abs(offy) > Math.abs(offx)) {
+				offy += this.offsetY;
+				evt && evt.preventDefault && evt.preventDefault();//阻止默认响应
+			}
+			else offy = false;			
+			offx = false;
+		}
+		return this.move(offx, offy);
+	}
+
+	/**
+	 * 手指滑动移动事件
+	 *
+	 */
+	scrollSlip.prototype.move = function(offx, offy) {	
+		if(offx !== false) {
+			var tranX = 'translateX(' + offx + 'px)';		
+			css(this.instance.containerInner,'transform', tranX, CSSMAP);
+			this.offsetX = offx;
+		}
+		if(offy !== false) {	
+			var tranY = 'translateY(' + offy + 'px)';		
+			css(this.instance.containerInner,'transform', tranY, CSSMAP);
+			this.offsetY = offy;
+		}
+	}
+
+	/**
+	 * 滑动结束事件
+	 */
+	scrollSlip.prototype.end = function(offx, offy, xdirection, ydirection, evt) {
+		if(this.instance.option.direction == 'x') {
+			if(this.offsetX > minOffset) this.reset();
+			else {
+				var maxoff = this.instance.containerInner.offsetWidth - this.instance.container.offsetWidth;
+				if(this.offsetX < -maxoff) {
+					this.move(-maxoff , false);
+				}
+				else {
+					//获取滑动时间，并计算速度
+					/*var time = evt.timeStamp - evt.startTime;
+					var s = offx / time * 100;
+					if(s < -maxoff) s = -maxoff;*/
+					this.offset(xdirection=='left'?-minOffset:minOffset, false);
+				}
+			}
+		}
+		else {
+			if(this.offsetY > minOffset) this.reset();
+			else {
+				var maxoff = this.instance.containerInner.offsetHeight - this.instance.container.offsetHeight;
+				if(this.offsetY < -maxoff) {
+					this.move(false , -maxoff);
+				}
+				else {
+					this.offset(false, ydirection=='up'?-minOffset:minOffset);
+				}
+			}
+		}
 	};
 
 	//设置对象样式
