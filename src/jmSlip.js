@@ -152,7 +152,11 @@
 					if(stop === false) {
 						return;
 					}
-				}	
+				}
+				
+				curposition.x = evt.clientX || evt.pageX;
+				curposition.y = evt.clientY || evt.pageY;
+				
 				//滑动当前移动距离，让页面跟随手指移动
 				var offx = curposition.x - startPosition.x;
 				var offy = curposition.y - startPosition.y;	
