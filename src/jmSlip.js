@@ -92,7 +92,8 @@
 			var obj = evt.touches && evt.touches.length?evt.touches[0]:evt;
 			prePosition.x = startPosition.x = obj.clientX || obj.pageX;
 			prePosition.y = startPosition.y = obj.clientY || obj.pageY;
-
+			//console.log(touchStart);
+			//console.log(startPosition);
 			self.transition(false);//停止动画
 			evt.stopPropagation && evt.stopPropagation();
 			//evt.preventDefault && evt.preventDefault();//阻止默认响应
@@ -153,17 +154,19 @@
 						return;
 					}
 				}
-				
-				curposition.x = evt.clientX || evt.pageX;
-				curposition.y = evt.clientY || evt.pageY;
-				
+
 				//滑动当前移动距离，让页面跟随手指移动
 				var offx = curposition.x - startPosition.x;
 				var offy = curposition.y - startPosition.y;	
 
+				curposition.x = evt.clientX || evt.pageX;
+				curposition.y = evt.clientY || evt.pageY;
+				//console.log(touchEnd);
+				//console.log(startPosition);
+
 				self.transition(true);//添加动画
 				evt.startTime = startTime;//记录滑动起始时间		
-				//console.log(evt);	
+				
 				self.slipObj.end(offx, offy, xdirection, ydirection, evt);
 				
 				self.touched = false;
@@ -407,6 +410,8 @@
 	 * @param {int} desPage 跳到当前页
 	 **/
 	pageSlip.prototype.pageEnd = function(srcPage, desPage) {
+		if(typeof desPage == 'string') desPage = parseInt(desPage, 10);
+		if(typeof srcPage == 'string') srcPage = parseInt(srcPage, 10);
 		if(srcPage == desPage || srcPage < 0 || desPage < 0) return;//如果没有换页则不用处理动画
 		var pages = this.instance.containerInner.children;
 		var oldpage = pages[srcPage];
