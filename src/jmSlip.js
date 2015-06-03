@@ -16,9 +16,7 @@
  */
 
 (function(win, doc) {
-	var CSSMAP = ['', '-ms-', '-webkit-', '-o-', '-moz-'],
-	aniTimeout = 500,//动画时间（毫秒）
-	aniTimeoutSecond = aniTimeout / 1000, //动画时间（秒）
+	var CSSMAP = ['', '-ms-', '-webkit-', '-o-', '-moz-'],	
 	hasTouch = 'ontouchstart' in win,//是否存在touch事件
 	minOffset = 30,//最小滑动距离表示翻页
 	touchStart = hasTouch?'touchstart':'mousedown',
@@ -33,6 +31,9 @@
 			mode = '';
 		}		
 		option = option || {};
+		option.duration = option.duration || 500;
+		option.durations = option.duration / 1000;
+
 		mode = mode || option.mode || 'page';		
 		if(typeof el == 'string') {
 			el = document.getElementById(el);
@@ -217,7 +218,7 @@
 		if(typeof b == 'undefined') b= true;
 		var transition = 'transform 0s ease 0s';
 		if(b) {
-			transition=this.slipObj && this.slipObj.transition?this.slipObj.transition:('transform '+aniTimeoutSecond+'s ease 0s');
+			transition=this.slipObj && this.slipObj.transition?this.slipObj.transition:('transform '+this.option.durations+'s ease 0s');
 		}
 		//当动画为默认的时，效果发生成inner上，否则发生成子元素上
 		if(!this.option.animate || this.option.animate == 'default') {
@@ -256,7 +257,7 @@
 		this.offsetY = 0;
 		this.offsetX = 0;
 		this.page = instance && instance.page?instance.page: 0;
-		this.transition = 'transform '+aniTimeoutSecond+'s ease-in-out 0s';
+		this.transition = 'transform '+this.option.durations+'s ease-in-out 0s';
 	}
 
 	/**
@@ -589,7 +590,7 @@
 		this.offsetY = 0;
 		this.offsetX = 0;
 		this.page = instance.page || 0;
-		this.transition = 'transform '+aniTimeoutSecond+'s ease-in-out 0s';
+		this.transition = 'transform '+this.option.durations+'s ease-in-out 0s';
 	}
 	//简单继承pageslip
 	itemSlip.prototype = new pageSlip();
