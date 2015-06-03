@@ -215,9 +215,9 @@
 	//设置/取消当前动画
 	slip.prototype.transition = function(b) {
 		if(typeof b == 'undefined') b= true;
-		var transition = 'transform 0 ease 0';
+		var transition = 'transform 0s ease 0s';
 		if(b) {
-			transition=this.slipObj && this.slipObj.transition?this.slipObj.transition:('transform '+aniTimeoutSecond+'s ease-in-out 0s');
+			transition=this.slipObj && this.slipObj.transition?this.slipObj.transition:('transform '+aniTimeoutSecond+'s ease 0s');
 		}
 		//当动画为默认的时，效果发生成inner上，否则发生成子元素上
 		if(!this.option.animate || this.option.animate == 'default') {
@@ -256,7 +256,7 @@
 		this.offsetY = 0;
 		this.offsetX = 0;
 		this.page = instance && instance.page?instance.page: 0;
-		this.transition = 'transform '+aniTimeoutSecond+'s ease';
+		this.transition = 'transform '+aniTimeoutSecond+'s ease-in-out 0s';
 	}
 
 	/**
@@ -324,12 +324,12 @@
 		//普通翻页动画，就是位移
 		if(!this.instance.option.animate || this.instance.option.animate == 'default') {
 			if(offx !== false) {
-				var tranX = 'translateX(' + offx + 'px)';		
+				var tranX = 'translate3d(' + offx + 'px,0px,0px)';		
 				css(this.instance.containerInner,'transform', tranX, CSSMAP);
 				this.offsetX = offx;
 			}
 			if(offy !== false) {	
-				var tranY = 'translateY(' + offy + 'px)';		
+				var tranY = 'translate3d(0px,' + offy + 'px,0px)';		
 				css(this.instance.containerInner,'transform', tranY, CSSMAP);
 				this.offsetY = offy;
 			}
@@ -534,12 +534,12 @@
 	 */
 	scrollSlip.prototype.move = function(offx, offy) {	
 		if(offx !== false) {
-			var tranX = 'translateX(' + offx + 'px)';		
+			var tranX = 'translate3d(' + offx + 'px,0px,0px)';		
 			css(this.instance.containerInner,'transform', tranX, CSSMAP);
 			this.offsetX = offx;
 		}
 		if(offy !== false) {	
-			var tranY = 'translateY(' + offy + 'px)';		
+			var tranY = 'translateY(0,' + offy + 'px,0px)';		
 			css(this.instance.containerInner,'transform', tranY, CSSMAP);
 			this.offsetY = offy;
 		}
@@ -619,6 +619,66 @@
 	}
 
 	/**
+	 * 滑动结束事件
+	 */
+	itemSlip.prototype.end = function(offx, offy, xdirection, ydirection, evt) {
+		if(this.instance.option.direction == 'x') {
+			if(offx > minOffset || offx < -minOffset) {
+				var len = this.instance.containerInner.children.length;
+				var lastindex = 0;
+				var leftwidth = 0;
+				var lastoffx = 0;
+				var mleft = this.instance.container.offsetWidth / 2 - this.offsetX;
+				//找到离中间最近的项
+				for(var i=0;i<len;i++) {		
+					var itemw = this.instance.containerInner.children[i].offsetWidth; 			
+					leftwidth += itemw;
+					if(leftwidth >= mleft) {
+						//如果刚过中间，且它比上一个离中线还近，则取它，否则取上一个
+						//这里是减去itemw/2  因为此项比中线要远
+						if(leftwidth - mleft - itemw / 2 < lastoffx) {
+							lastindex = i;
+						}
+						break;
+					}
+					//离项中间的距离
+					lastoffx = mleft - leftwidth + itemw / 2;
+					lastindex = i;
+				}	
+				this.go(lastindex);
+			}
+			else this.reset();
+		}
+		else {
+			if(offy > minOffset || offy < -minOffset) {
+				var len = this.instance.containerInner.children.length;
+				var lastindex = 0;
+				var topheight = 0;
+				var lastoffy = 0;
+				var mtop = this.instance.container.offsetHeight / 2 - this.offsetY;
+				//找到离中间最近的项
+				for(var i=0;i<len;i++) {		
+					var itemh = this.instance.containerInner.children[i].offsetHeight; 			
+					topheight += itemh;
+					if(topheight >= mtop) {
+						//如果刚过中间，且它比上一个离中线还近，则取它，否则取上一个
+						//这里是减去itemw/2  因为此项比中线要远
+						if(topheight - mtop - itemh / 2 < lastoffy) {
+							lastindex = i;
+						}
+						break;
+					}
+					//离项中间的距离
+					lastoffy = mtop - topheight + itemh / 2;
+					lastindex = i;
+				}	
+				this.go(lastindex);
+			}
+			else this.reset();
+		}
+	};
+
+	/**
 	 * 跳转到指定的页
 	 */
 	itemSlip.prototype.go = function(page) {
@@ -643,7 +703,7 @@
 		var offx = false,offy = false;
 		if(this.instance.option.direction == 'x') {
 			offx = this.instance.container.offsetWidth / 2;
-			for(var i=0;i<this.instance.containerInner.children.length;i++) {
+			for(var i=0;i<len;i++) {
 				if(i == page) {
 					offx -= this.instance.containerInner.children[i].offsetWidth / 2;
 					break;
@@ -653,7 +713,7 @@
 		}
 		else {
 			offy = this.instance.container.offsetHeight / 2;
-			for(var i=0;i<this.instance.containerInner.children.length;i++) {
+			for(var i=0;i<len;i++) {
 				if(i == page) {
 					offy -= this.instance.containerInner.children[i].offsetHeight / 2;
 					break;
