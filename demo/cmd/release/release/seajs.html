@@ -2,15 +2,14 @@
 <html style="height:100%;margin:0;">
 <head>
 <meta charset="utf-8">
-<title>横屏分页</title>
+<title>cmd规范加载</title>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
 <meta name="format-detection" content="telephone=no" />
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1, user-scalable=no"/>
-<script src="http://mat1.gtimg.com/www/mobi/js/zepto.min.js"></script>
-<script src="../../src/jmSlip.js"></script>
+<script src="/sea_6b5d408.js"></script>
 <style>
 #banner {
 	width: 100%;
@@ -53,20 +52,17 @@
 	</ul>
 </section>
 <script>
-var slip = new jmSlip('banner','page',{
-	changeTime: 2000, 
-	direction: 'x', 
-	//animate: 'flip',
-	onTouchMove: function(evt) {
-		evt.preventDefault();
-	}});
 
-$(window).resize(function(){
-
-	slip.reset();
+// seajs
+seajs.config({
+    base: './'
 });
-</script>
- <script type="text/javascript" src="http://tajs.qq.com/stats?sId=45761699" charset="UTF-8"></script>
+//利用seajs加载jmSlip
+seajs.use('./index',function(page){
+	page.init();
+});
 
+
+</script>
 </body>
 </html>

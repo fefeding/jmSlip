@@ -1,0 +1,181 @@
+<!doctype html>
+<html style="height:100%;margin:0;">
+<head>
+<meta charset="utf-8">
+<title>横向平滑滚动</title>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<meta name="format-detection" content="telephone=no" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1, user-scalable=no"/>
+<script src="http://mat1.gtimg.com/www/mobi/js/zepto.min.js"></script>
+<script src="../../src/jmSlip.js?20141112"></script>
+<style>
+#banner1 {
+	width: 100%;
+	height: 64px;
+	margin-top: 20px;
+}
+#banner1 > ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+#banner1 > ul > li {
+	float: left;
+	padding-top: inherit;
+}
+#banner1 > ul > li > a {
+	display: block;
+	margin: 2px 6px;
+	width: 60px;
+	height: 60px;
+	background-position: center;
+	background-size: cover;
+	text-decoration: none;
+}
+
+#banner2 {
+	width: 80px;
+	height: 400px;
+	margin: 25px auto;
+	background-color: #ccc;
+}
+#banner2 > ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+#banner2 > ul > li {
+	padding-top: inherit;
+	text-align: center;
+	margin: 8px 6px;
+}
+#banner2 > ul > li > a {
+	display: block;
+	
+	width: 60px;
+	height: 60px;
+	background-position: center;
+	background-size: cover;
+	text-decoration: none;
+}
+</style>
+</head>
+<body style="margin:0;">
+<section id="banner1">
+	<ul>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_agame_qq_com_common_5d_common_1155343465242_icon.png/0);" ></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_agame_qq_com_common_22_common_1237789488688_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#"  style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_g_qq_com_common_aa_common_1311022416660_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_g_qq_com_common_b4_common_1293148818448_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_agame_qq_com_common_5d_common_1155343465242_icon.png/0);" ></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_agame_qq_com_common_22_common_1237789488688_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#"  style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_g_qq_com_common_aa_common_1311022416660_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_g_qq_com_common_b4_common_1293148818448_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_agame_qq_com_common_5d_common_1155343465242_icon.png/0);" ></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_agame_qq_com_common_22_common_1237789488688_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#"  style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_g_qq_com_common_aa_common_1311022416660_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_g_qq_com_common_b4_common_1293148818448_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_agame_qq_com_common_5d_common_1155343465242_icon.png/0);" ></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_agame_qq_com_common_22_common_1237789488688_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#"  style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_g_qq_com_common_aa_common_1311022416660_icon.png/0);"></a>
+		</li>
+		
+	</ul>
+</section>
+
+<section id="banner2">
+	<ul>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_agame_qq_com_common_5d_common_1155343465242_icon.png/0);" ></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_agame_qq_com_common_22_common_1237789488688_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#"  style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_g_qq_com_common_aa_common_1311022416660_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_g_qq_com_common_b4_common_1293148818448_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_agame_qq_com_common_5d_common_1155343465242_icon.png/0);" ></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_agame_qq_com_common_22_common_1237789488688_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#"  style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_g_qq_com_common_aa_common_1311022416660_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_g_qq_com_common_b4_common_1293148818448_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_agame_qq_com_common_5d_common_1155343465242_icon.png/0);" ></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_agame_qq_com_common_22_common_1237789488688_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#"  style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_g_qq_com_common_aa_common_1311022416660_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_g_qq_com_common_b4_common_1293148818448_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_agame_qq_com_common_5d_common_1155343465242_icon.png/0);" ></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_agame_qq_com_common_22_common_1237789488688_icon.png/0);"></a>
+		</li>
+		<li>
+			<a href="#"  style="background-image:url(http://shp.qpic.cn/txdiscuz_pic/0/_bbs_g_qq_com_common_aa_common_1311022416660_icon.png/0);"></a>
+		</li>
+		
+	</ul>
+</section>
+<script>
+var slip1 = new jmSlip('banner1','scroll',{direction: 'x'});
+var slip2 = new jmSlip('banner2','scroll',{direction: 'y'});
+$(window).resize(function(){
+	slip1.reset();
+	slip2.reset();
+});
+</script>
+<script type="text/javascript" src="http://tajs.qq.com/stats?sId=45761699" charset="UTF-8"></script>
+
+</body>
+</html>

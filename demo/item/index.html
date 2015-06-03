@@ -15,54 +15,74 @@
 #banner {
 	width: 100%;
 	margin-top: 20px;
+	text-align: center;
 }
 #banner > ul {
 	list-style: none;
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
+	text-align: center;
+	height: 100px;
 }
 #banner > ul > li {
-	float: left;
-	padding-top: inherit;
+	float: left;	
+	padding-top: inherit;	
+	padding: 0 20px;
+	vertical-align: middle;
 }
 #banner > ul > li > a {
 	display: block;
-	padding-top: 38%;
-	background-position: center;
-	background-size: cover;
-	text-decoration: none;
+	width: 60px;
+	height: 60px;
+	background: #FCAC6F;
+	border-radius: 50%;
+	vertical-align: middle;
+	transition:all 0.5s ease-in-out 0s;
+	-webkit-transition:all 0.5s ease-in-out 0s;
+}
+#banner > ul > li.cur>a {
+	width: 80px;
+	height: 80px;
 }
 </style>
 </head>
 <body style="margin:0;">
 <section id="banner">
 	<ul>
-		<li>
-			<a href="#" style="background-image:url(http://gqq.gtimg.com/zhuanlan/sBannerPic_20141107150521.jpg);" ></a>
+		<li class="cur" >
+			<a href="#" data-index="0">1</a>
 		</li>
 		<li>
-			<a href="#" style="background-image:url(http://gqq.gtimg.com/zhuanlan/sBannerPic_20141107145405.jpg);"></a>
+			<a href="#" data-index="1">2</a>
 		</li>
 		<li>
-			<a href="#"  style="background-image:url(http://gqq.gtimg.com/zhuanlan/sBannerPic_20141031200630.jpg);"></a>
+			<a href="#" data-index="2">3</a>
 		</li>
 		<li>
-			<a href="#" style="background-image:url(http://gqq.gtimg.com/zhuanlan/sBannerPic_20141107145440.jpg);"></a>
+			<a href="#" data-index="3">4</a>
 		</li>
 	</ul>
 </section>
 <script>
-var slip = new jmSlip('banner','page',{
-	changeTime: 2000, 
+var slip = new jmSlip('banner','item',{
 	direction: 'x', 
-	//animate: 'flip',
+	page: 2,
 	onTouchMove: function(evt) {
 		evt.preventDefault();
-	}});
-
+	},
+	onPageEnd: function(oldPage,newPage) {
+		setTimeout(function(){
+			$('#banner li.cur').toggleClass('cur',false);
+			$('#banner li').eq(newPage).toggleClass('cur',true);
+		},100);		
+	}
+});
+$('#banner').delegate('a[data-index]', 'click',function(){
+	var index = parseInt($(this).attr('data-index'), 10);
+	slip.go(index);
+});
 $(window).resize(function(){
-
 	slip.reset();
 });
 </script>

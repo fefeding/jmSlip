@@ -47,7 +47,7 @@
 		this.container = el;		
 		this.containerInner = this.container.children[0];
 		this.mode = mode;
-		this.page = 0;
+		this.page = option.page || 0;
 		this.offsetY = 0;
 		this.option = option;
 		//css(doc.body, 'margin', 0);
@@ -55,6 +55,10 @@
 		switch(mode) {
 			case 'page': {
 				this.slipObj = new pageSlip(this);
+				break;
+			}
+			case 'item': {
+				this.slipObj = new itemSlip(this);
 				break;
 			}
 			case 'scroll': {
@@ -212,7 +216,9 @@
 	slip.prototype.transition = function(b) {
 		if(typeof b == 'undefined') b= true;
 		var transition = 'transform 0 ease 0';
-		if(b) transition='transform '+aniTimeoutSecond+'s ease';
+		if(b) {
+			transition=this.slipObj && this.slipObj.transition?this.slipObj.transition:('transform '+aniTimeoutSecond+'s ease-in-out 0s');
+		}
 		//当动画为默认的时，效果发生成inner上，否则发生成子元素上
 		if(!this.option.animate || this.option.animate == 'default') {
 			for(var j=0;j<CSSMAP.length;j++) {
@@ -233,16 +239,24 @@
 			css(children[i], name, value, map);
 		}
 	}
+
+	//跳转
+	slip.prototype.go = function(index) {
+		if(this.slipObj.go) this.slipObj.go(index);
+	}
+
+
 	/**
 	 * 翻页滑动对象
 	 *
 	 */
 	function pageSlip(instance) {
 		this.instance = instance;
-		this.option = instance.option;
+		this.option = instance?instance.option:{};
 		this.offsetY = 0;
 		this.offsetX = 0;
-		this.page = 0;
+		this.page = instance && instance.page?instance.page: 0;
+		this.transition = 'transform '+aniTimeoutSecond+'s ease';
 	}
 
 	/**
@@ -564,6 +578,102 @@
 			}
 		}
 	};
+
+	/**
+	 * 切换滑动对象
+	 *
+	 */
+	function itemSlip(instance) {
+		this.instance = instance;
+		this.option = instance.option;
+		this.offsetY = 0;
+		this.offsetX = 0;
+		this.page = instance.page || 0;
+		this.transition = 'transform '+aniTimeoutSecond+'s ease-in-out 0s';
+	}
+	//简单继承pageslip
+	itemSlip.prototype = new pageSlip();
+
+	/**
+	 * 重置和初始化滑动对象
+	 *
+	 */
+	itemSlip.prototype.reset = function() {		
+		if(this.instance.option.direction == 'x') {
+			var totalwidth = 0;
+			//计算所有项总宽度
+			for(var i=0;i<this.instance.containerInner.children.length;i++) {
+				totalwidth += this.instance.containerInner.children[i].offsetWidth;
+			}
+			css(this.instance.containerInner, 'width', totalwidth + 'px');			
+		}
+		else {
+			var totalheight = 0;
+			//计算所有项总高度
+			for(var i=0;i<this.instance.containerInner.children.length;i++) {
+				totalheight += this.instance.containerInner.children[i].offsetHeight;
+			}
+			css(this.instance.containerInner, 'height', totalheight);			
+		}		
+		this.go(this.page);
+	}
+
+	/**
+	 * 跳转到指定的页
+	 */
+	itemSlip.prototype.go = function(page) {
+		var len = this.instance.containerInner.children.length;
+		var oldpage = this.page;
+		if(page < 0) page = 0;
+		else if(page > len - 1) 
+			page = len - 1;
+		//如果页面没有改变。则不执行后面的
+		//if(page == oldpage) return;
+
+		//翻页前先调用自定义回调，如果返回false则中止
+		if(this.option && this.option.onPageStart && typeof this.option.onPageStart == 'function') {
+			var stop = this.option.onPageStart.call(this, page);
+			//如果回调返回false , 则中止
+			if(stop === false) {
+				return;
+			}
+		}	
+
+		//开始翻页计算
+		var offx = false,offy = false;
+		if(this.instance.option.direction == 'x') {
+			offx = this.instance.container.offsetWidth / 2;
+			for(var i=0;i<this.instance.containerInner.children.length;i++) {
+				if(i == page) {
+					offx -= this.instance.containerInner.children[i].offsetWidth / 2;
+					break;
+				}
+				offx -= this.instance.containerInner.children[i].offsetWidth;
+			}			
+		}
+		else {
+			offy = this.instance.container.offsetHeight / 2;
+			for(var i=0;i<this.instance.containerInner.children.length;i++) {
+				if(i == page) {
+					offy -= this.instance.containerInner.children[i].offsetHeight / 2;
+					break;
+				}
+				offy -= this.instance.containerInner.children[i].offsetHeight;
+			}	
+		}		
+
+		this.move(offx, offy);
+		this.page = this.instance.page = page;
+
+		//翻页后先调用自定义回调，以备做一些其它自定义处理
+		if(this.option && this.option.onPageEnd && typeof this.option.onPageEnd == 'function') {
+			this.option.onPageEnd.call(this, oldpage, page);
+		}
+		//执行动画结束后效果处理
+		this.pageEnd(oldpage, page);
+		return true;	
+	};
+
 
 	//设置对象样式
 	function css(el, name, value, map) {
