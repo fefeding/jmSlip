@@ -540,7 +540,7 @@
 			this.offsetX = offx;
 		}
 		if(offy !== false) {	
-			var tranY = 'translateY(0,' + offy + 'px,0px)';		
+			var tranY = 'translate3d(0px,' + offy + 'px,0px)';		
 			css(this.instance.containerInner,'transform', tranY, CSSMAP);
 			this.offsetY = offy;
 		}
@@ -835,37 +835,37 @@
 		var styleText = '@-webkit-keyframes jmslip-flash-keyframes\
 						{\
 							0%   {\
-								-webkit-transform: translate(2px,-2px);\
-								transform: translate(2px,-2px);\
+								-webkit-transform: translate3d(2px,-2px,0px);\
+								transform: translate3d(2px,-2px,0px);\
 							}\
 							25%  {\
-								-webkit-transform: translate(4px,-4px);\
-								transform: translate(4px,-4px);\
+								-webkit-transform: translate3d(4px,-4px,0px);\
+								transform: translate3d(4px,-4px,0px);\
 							}\
 							50%  {\
-								-webkit-transform: translate(4px,4px);\
-								transform: translate(4px,4px);\
+								-webkit-transform: translate3d(4px,4px,0px);\
+								transform: translate3d(4px,4px,0px);\
 							}\
 							75%  {\
-								-webkit-transform: translate(-4px,4px);\
-								transform: translate(-4px,4px);\
+								-webkit-transform: translate3d(-4px,4px,0px);\
+								transform: translate3d(-4px,4px,0px);\
 							}\
 							100% {\
-								-webkit-transform: translate(-4px,-4px);\
-								transform: translate(-4px,-4px);\
+								-webkit-transform: translate3d(-4px,-4px,0px);\
+								transform: translate3d(-4px,-4px,0px);\
 							}\
 						}\
 						.jmslip-ani-flash1 {\
-							-webkit-animation: jmslip-flash-keyframes 4s ease-in 0 infinite alternate;\
-							animation: jmslip-flash-keyframes 4s ease-in 0 infinite alternate;\
+							-webkit-animation: jmslip-flash-keyframes 4s ease-in 0s infinite alternate;\
+							animation: jmslip-flash-keyframes 4s ease-in 0s infinite alternate;\
 						}\
 						.jmslip-ani-flash2 {\
-							-webkit-animation: jmslip-flash-keyframes 6s ease-in 0 infinite alternate;\
-							animation: jmslip-flash-keyframes 6s ease-in 0 infinite alternate;\
+							-webkit-animation: jmslip-flash-keyframes 6s ease-in 0s infinite alternate;\
+							animation: jmslip-flash-keyframes 6s ease-in 0s infinite alternate;\
 						}\
 						.jmslip-ani-flash3 {\
-							-webkit-animation: jmslip-flash-keyframes 7s ease-in 0 infinite alternate;\
-							animation: jmslip-flash-keyframes 7s ease-in 0 infinite alternate;\
+							-webkit-animation: jmslip-flash-keyframes 7s ease-in 0s infinite alternate;\
+							animation: jmslip-flash-keyframes 7s ease-in 0s infinite alternate;\
 						}\
 						.jmslip-ani {\
 							-moz-transition: all 1s ease-in;\
@@ -907,11 +907,11 @@
 							opacity: 0;\
 						}\
 						.jmslip-ani-normal {\
-							-moz-transform: translate(0,0) scale(1)!important;\
-						    -webkit-transform: translate(0,0) scale(1)!important;\
-						    -o-transform: translate(0,0) scale(1)!important;\
-						    -ms-transform: translate(0,0) scale(1)!important;\
-						    transform: translate(0,0) scale(1)!important;\
+							-moz-transform: translate3d(0,0,0) scale3d(1,1,1)!important;\
+						    -webkit-transform: translate3d(0,0,0) scale3d(1,1,1)!important;\
+						    -o-transform: translate3d(0,0,0) scale3d(1,1,1)!important;\
+						    -ms-transform: translate3d(0,0,0) scale3d(1,1,1)!important;\
+						    transform: translate3d(0,0,0) scale3d(1,1,1)!important;\
 						    opacity: 1!important;\
 						}\
 						.jmslip-ani-leftin {\
@@ -943,18 +943,18 @@
 						    transform: translateY(500px);  \
 						}\
 						.jmslip-ani-scalebig{\
-							-moz-transform: scale(0.2);\
-						    -webkit-transform: scale(0.2);\
-						    -o-transform: scale(0.2);\
-						    -ms-transform: scale(0.2);\
-						    transform: scale(0.2);\
+							-moz-transform: scale3d(0.2,0.2,1);\
+						    -webkit-transform: scale3d(0.2,0.2,1);\
+						    -o-transform: scale3d(0.2,0.2,1);\
+						    -ms-transform: scale3d(0.2,0.2,1);\
+						    transform: scale3d(0.2,0.2,1);\
 						}\
 						.jmslip-ani-scalesmall{\
-							-moz-transform: scale(2);\
-						    -webkit-transform: scale(2);\
-						    -o-transform: scale(2);\
-						    -ms-transform: scale(2);\
-						    transform: scale(2);\
+							-moz-transform: scale3d(2,2,1);\
+						    -webkit-transform: scale3d(2,2,1);\
+						    -o-transform: scale3d(2,2,1);\
+						    -ms-transform: scale3d(2,2,1);\
+						    transform: scale3d(2,2,1);\
 						}'; 		
 		if(nod.styleSheet){         //ie下  
 			nod.styleSheet.cssText = styleText;  

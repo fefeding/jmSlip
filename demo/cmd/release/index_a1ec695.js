@@ -1,1 +1,0 @@
-define(function(e,n){var i=e("zepto.js"),t=e("undefined");n.init=function(){var e=new t("banner","page",{changeTime:2e3,direction:"x"});i(window).resize(function(){e.reset()})}});
