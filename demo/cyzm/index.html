@@ -14,9 +14,9 @@
 <script src="http://mat1.gtimg.com/www/mobi/js/zepto.min.js"></script>
 <script src="../../src/jmSlip.js"></script>
 </head>
-<body>
-<div id="page-container">
-<div id="wrap">
+<body style="height:100%;">
+<div id="page-container" style="position:absolute;width:100%;height:100%;">
+<div id="wrap" style="width:100%;height:100%;">
 	<div class="page page-1">
 		<b></b>	
 		<span class="time"> 2014.11.14-11.16</span>	
@@ -159,76 +159,9 @@
 
 <script>
 $(function(){
-	var isWindowOrient = (window.orientation || 0) === 0;
-
-	//var wrap = document.getElementById('wrap');
-	var container = document.getElementById('page-container');
-	container.style.height = window.innerHeight + 'px';
-	//if (isWindowOrient) {
-	//	container.className = 'orient';
-	//}
-
-	//var total = wrap.children.length;
-	var init = false;
-
+	
 	var slip = new jmSlip('page-container','page');
 
-	function pageEnd(oldpage, newpage) {
-		//jmslip的page是从0开始的，所以全加1
-		var page = $('.page-' + (newpage+1));
-		//加载图片
-		page.find('img[data-src]').each(function(i,img){
-			$(img).attr('src',$(img).attr('data-src')).removeAttr('data-src');
-		});
-
-		page.find('.ani').toggleClass('tran-normal',true);
-		
-		oldpage = $('.page-' + (oldpage + 1));
-		
-
-		var anis = oldpage.find('.ani').removeClass('ani').removeClass('tran-normal');
-		setTimeout(function(){
-			anis.addClass('ani');
-		},20);
-		setTimeout(function(){
-			page.find('.js-flash').each(function(i,f) {
-				var cn = 'flash'+((i % 3)+1);
-				$(f).toggleClass(cn,true);
-			});
-			oldpage.find('.flash').removeClass('flash').removeClass('flash1').removeClass('flash2').removeClass('flash3');
-		},600);
-	}
-	/*var slip = Slip(wrap, 'y')
-		.webapp()
-		.end(function() {
-			var page = $('.page-' + (this.page+1));
-			//加载图片
-			page.find('img[data-src]').each(function(i,img){
-				$(img).attr('src',$(img).attr('data-src')).removeAttr('data-src');
-			});
-
-			page.find('.ani').toggleClass('tran-normal',true);
-			var orient = this.orient.join('');
-			//表示向上跑
-			if (orient.indexOf('up') > -1) {				
-				var oldpage = $('.page-' + this.page);
-			}
-			else {
-				var oldpage = $('.page-' + (this.page+2));
-			}
-
-			var anis = oldpage.find('.ani').removeClass('ani').removeClass('tran-normal');
-			setTimeout(function(){
-				anis.addClass('ani');
-			},20);
-			setTimeout(function(){
-				page.find('.js-flash').each(function(i,f) {
-					var cn = 'flash'+((i % 3)+1);
-					$(f).toggleClass(cn,true);
-				});
-				oldpage.find('.flash').removeClass('flash').removeClass('flash1').removeClass('flash2').removeClass('flash3');
-			},600);
-		});*/
 /*
 	$(window).resize(function(){
 		var h = $(window).height();

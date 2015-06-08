@@ -2,7 +2,7 @@
 <html style="height:100%;margin:0;">
 <head>
 <meta charset="utf-8">
-<title>横屏分页</title>
+<title>横屏滑动项</title>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
 <meta name="format-detection" content="telephone=no" />
@@ -22,55 +22,185 @@
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
-	text-align: center;
-	height: 100px;
+	display: -webkit-box;
+  -webkit-box-pack: center;
+  -webkit-box-align: center;
+  position: relative;
+  height: 84px;
 }
 #banner > ul > li {
-	float: left;	
-	padding-top: inherit;	
-	padding: 0 20px;
-	vertical-align: middle;
+	display: block;
+  -webkit-box-sizing: border-box;
+  overflow: hidden;
+  -webkit-transform: scale3d(0.8, 0.8, 1);
+  transform: scale3d(0.8, 0.8, 1);
+  margin: 0;
 }
 #banner > ul > li > a {
 	display: block;
-	width: 60px;
-	height: 60px;
-	background: #FCAC6F;
-	border-radius: 50%;
-	vertical-align: middle;
-	transition:all 0.5s ease-in-out 0s;
-	-webkit-transition:all 0.5s ease-in-out 0s;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #fbac6f;
+  color: #FFF;
+  font-size: 16px;
+  text-align: center;
+  padding: 21px 0 0 0;
+  overflow: hidden;
+  color: #FFF;
+  -webkit-box-sizing: border-box;
+  margin: 0 auto;
+  text-decoration: none;
+}
+#banner > ul > li.cur{
+-webkit-transform: scale3d(1, 1, 1)!important;
+transform: scale3d(1, 1, 1)!important;
+transition: all 0.5s ease-in-out 0s;
 }
 #banner > ul > li.cur>a {
-	width: 80px;
-	height: 80px;
+	padding: 11px 0 0 0;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background-color: #fa9546;
+}
+#banner > ul > li.cur .gs-time {
+	  font-size: 25px;
+  height: 28px;
+  line-height: 28px;
+  margin-top: 0;
+}
+#banner > ul > li.cur .gs-date {
+  font-size: 14px;
+}
+#banner > ul > li.cur .gs-server {
+  display: block;
+}
+#banner > ul > li.expire a {
+  background-color: #b2b2b2;
+}
+#banner > ul li span {
+  display: block;
+  height: 16px;
+  line-height: 16px;
+  overflow: hidden;
+}
+#banner > ul li .gs-time {
+  font-size: 16px;
+  margin-top: 6px;
+}
+#banner > ul li span.gs-server {
+  display: none;
+  font-size: 12px;
 }
 </style>
 </head>
 <body style="margin:0;">
 <section id="banner">
-	<ul>
-		<li class="cur" >
-			<a href="#" data-index="0">1</a>
+	<!-- 游戏新服列表 -->
+	<ul class="game-server-ul">
+		<li class="expire" data-index="0">
+			<a href="#">
+				<span class="gs-date">5-7</span>
+				<span class="gs-time">12:00</span>
+				<span class="gs-server">安卓1区</span>
+			</a>
 		</li>
-		<li>
-			<a href="#" data-index="1">2</a>
+		<li class="expire" data-index="1">
+			<a href="#">
+				<span class="gs-date">5-7</span>
+				<span class="gs-time">12:00</span>
+				<span class="gs-server">安卓2区</span>
+			</a>
 		</li>
-		<li>
-			<a href="#" data-index="2">3</a>
+		<li class="expire" data-index="2">
+			<a href="#">
+				<span class="gs-date">5-7</span>
+				<span class="gs-time">12:00</span>
+				<span class="gs-server">安卓3区</span>
+			</a>
 		</li>
-		<li>
-			<a href="#" data-index="3">4</a>
+		<li data-index="3">
+			<a href="#">
+				<span class="gs-date">5-8</span>
+				<span class="gs-time">12:00</span>
+				<span class="gs-server">安卓4区</span>
+			</a>
+		</li>
+		<li data-index="4">
+			<a href="#">
+				<span class="gs-date">5-9</span>
+				<span class="gs-time">12:00</span>
+				<span class="gs-server">安卓5区</span>
+			</a>
+		</li>
+		<li data-index="5">
+			<a href="#">
+				<span class="gs-date">5-10</span>
+				<span class="gs-time">12:00</span>
+				<span class="gs-server">安卓6区</span>
+			</a>
+		</li>
+		<li data-index="6">
+			<a href="#">
+				<span class="gs-date">5-11</span>
+				<span class="gs-time">12:00</span>
+				<span class="gs-server">安卓7区</span>
+			</a>
+		</li>
+		<li data-index="7">
+			<a href="#">
+				<span class="gs-date">5-10</span>
+				<span class="gs-time">12:00</span>
+				<span class="gs-server">安卓8区</span>
+			</a>
+		</li>
+		<li data-index="8">
+			<a href="#">
+				<span class="gs-date">5-11</span>
+				<span class="gs-time">12:00</span>
+				<span class="gs-server">安卓8区</span>
+			</a>
 		</li>
 	</ul>
 </section>
 <script>
 var slip = new jmSlip('banner','item',{
+	//changeTime: 1500, 
 	direction: 'x', 
 	page: 2,
-	duration: 350,
-	onTouchMove: function(evt) {
+	duration: 800,
+	onTouchStart: function(){
+		$('#banner li.cur').toggleClass('cur',false);
+	},
+	onTouchMove: function(evt, offset) {
 		evt.preventDefault();
+
+		var len = this.instance.containerInner.children.length;		
+		var leftwidth = 0;
+		var lastoffx = 0;
+		var lastindex = 0;
+		var mleft = this.instance.container.offsetWidth / 2 - this.offsetX;
+		//找到离中间最近的项
+		for(var i=0;i<len;i++) {		
+			var itemw = this.instance.containerInner.children[i].offsetWidth; 			
+			leftwidth += itemw;
+			var c = leftwidth - itemw / 2;
+			if(c >= mleft) {
+				var curoffx = Math.abs(c - mleft);
+				if(lastindex != i) {
+					var sc = Math.max((1-lastoffx / itemw),0) * 0.2 + 0.8;
+					$('#banner li').eq(lastindex).css('transform', 'scale3d('+sc+', '+sc+', 1)');
+				}
+				var sc = Math.max((1 - curoffx / itemw),0) * 0.2 + 0.8;
+				$('#banner li').eq(i).css('transform', 'scale3d('+sc+', '+sc+', 1)');
+				break;
+			}
+			//离项中间的距离
+			lastoffx = Math.abs(mleft - c);
+			lastindex = i;
+		}	
 	},
 	onPageEnd: function(oldPage,newPage) {
 		setTimeout(function(){
@@ -79,9 +209,10 @@ var slip = new jmSlip('banner','item',{
 		},100);		
 	}
 });
-$('#banner').delegate('a[data-index]', 'click',function(){
+$('#banner').delegate('li[data-index]', 'click',function(){
 	var index = parseInt($(this).attr('data-index'), 10);
 	slip.go(index);
+	return false;
 });
 $(window).resize(function(){
 	slip.reset();

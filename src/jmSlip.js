@@ -105,14 +105,7 @@
 		});
 		bind(this.container, touchMove, function(evt) {
 			evt = evt || win.event;
-			if(self.touched) {				
-				if(self.option && self.option.onTouchMove && typeof self.option.onTouchMove == 'function') {
-					var stop = self.option.onTouchMove.call(self.slipObj, evt);
-					//如果回调返回false , 则中止当前滑动
-					if(stop === false) {
-						return;
-					}
-				}	
+			if(self.touched) {
 				var obj = evt.touches && evt.touches.length?evt.touches[0]:evt;
 				curposition.x = obj.clientX || obj.pageX;
 				curposition.y = obj.clientY || obj.pageY;
@@ -134,9 +127,17 @@
 				var offx = curposition.x - prePosition.x;
 				prePosition.x = curposition.x;
 				prePosition.y = curposition.y;
-				//console.log('move: offx:' + offx);
-				//console.log('move: offy:' + offy);
-				var off = self.slipObj.offset(offx, offy, evt);	
+
+				var off = true;
+				if(self.option && self.option.onTouchMove && typeof self.option.onTouchMove == 'function') {
+					var stop = self.option.onTouchMove.call(self.slipObj, evt, {offx:curposition.x - startPosition.x,offy:curposition.y - startPosition.y});
+					//如果回调返回false , 则中止当前滑动
+					if(stop === false) {
+						off = false;
+					}
+				}	
+
+				if(off) off = self.slipObj.offset(offx, offy, evt);	
 				//如果返回中止，则中止此次移动事件
 				if(off === false) {
 					onTouchEnd.call(this, evt);
@@ -209,12 +210,15 @@
 	}
 
 	slip.prototype.reset = function() {
-		this.transition(true);//添加动画
 		this.slipObj.reset && this.slipObj.reset();
+		/*var self = this;
+		setTimeout(function(){
+			self.transition(true);//添加动画
+		},10);*/
 	}
 
 	//设置/取消当前动画
-	slip.prototype.transition = function(b) {
+	slip.prototype.transition = function(b, el) {
 		if(typeof b == 'undefined') b= true;
 		var transition = 'transform 0s ease 0s';
 		if(b) {
@@ -223,19 +227,19 @@
 		//当动画为默认的时，效果发生成inner上，否则发生成子元素上
 		if(!this.option.animate || this.option.animate == 'default') {
 			for(var j=0;j<CSSMAP.length;j++) {
-				css(this.containerInner, CSSMAP[j]+'transition', CSSMAP[j]+transition);
+				css(el||this.containerInner, CSSMAP[j]+'transition', CSSMAP[j]+transition);
 			}	
 		}
 		else {
 			for(var j=0;j<CSSMAP.length;j++) {
-				this.setStyle(CSSMAP[j]+'transition', CSSMAP[j]+transition);
+				this.setStyle(CSSMAP[j]+'transition', transition, CSSMAP, el);
 			}	
 		}
 	}
 
 	//设置子元素
-	slip.prototype.setStyle = function(name, value, map) {
-		var children = this.containerInner.children;
+	slip.prototype.setStyle = function(name, value, map, children) {
+		var children = children || this.containerInner.children;
 		for(var i=0;i<children.length;i++) {
 			css(children[i], name, value, map);
 		}
@@ -254,10 +258,20 @@
 	function pageSlip(instance) {
 		this.instance = instance;
 		this.option = instance?instance.option:{};
+		this.option.animate = 'page';
 		this.offsetY = 0;
 		this.offsetX = 0;
 		this.page = instance && instance.page?instance.page: 0;
 		this.transition = 'transform '+this.option.durations+'s ease-in-out 0s';
+		this.children = [];
+		if(instance && instance.containerInner) {
+			for(var i=0;i<instance.containerInner.children.length;i++) {
+				this.children.push(instance.containerInner.children[i]);
+			}
+			css(instance.containerInner, 'position', 'relative');
+			this.instance.setStyle({'position': 'absolute', 'width':'100%', 'height':'100%', 'top':0,'left':0});
+			if(this.children[this.page]) this.children[this.page].style.zIndex = 10000;
+		}
 	}
 
 	/**
@@ -266,28 +280,25 @@
 	 */
 	pageSlip.prototype.reset = function() {		
 		if(this.instance.option.direction == 'x') {
-			var w = this.instance.option.width || this.instance.container.offsetWidth;
+			this.pageWidth = this.instance.option.width || this.instance.container.offsetWidth;
 			//如果是默认的翻页方式，则内框的宽度为子元素总宽度和
 			//其它动画效果为容器宽高，使用绝对定位
-			if(!this.instance.option.animate || this.instance.option.animate == 'default') {
-				css(this.instance.containerInner, 'width', w * this.instance.containerInner.children.length + 'px');
-			}
-			else {
-				css(this.instance.containerInner, 'width', w + 'px');
-				css(this.instance.containerInner, 'position', 'relative');
-				this.instance.setStyle('position', 'absolute');
-				this.instance.setStyle('left', '0');
-				this.instance.setStyle('top', '0');
-				//this.instance.setStyle('visibility', 'hidden');
-			}
-			this.instance.setStyle('width', w + 'px');
+			
+			//css(this.instance.containerInner, 'width', this.pageWidth + 'px');
+			//his.instance.setStyle('width', this.pageWidth + 'px');
 		}
 		else {
-			var h = (this.instance.option.height || this.instance.container.offsetHeight) + 'px';
-			//css(this.instance.containerInner, 'height', h);
-			this.instance.setStyle('height', h);
+			this.pageHeight = (this.instance.option.height || this.instance.container.offsetHeight);
+			//css(this.instance.containerInner, 'height', this.pageHeight + 'px');
+			//this.instance.setStyle('height', this.pageHeight + 'px');
 		}		
+		this.instance.transition(false, this.children);
 		this.go(this.page);
+		var self = this;
+		//设定元素动画
+		setTimeout(function(){
+			self.instance.transition(true, self.children);
+		},50);		
 	}
 
 	/**
@@ -322,31 +333,32 @@
 	 *
 	 */
 	pageSlip.prototype.move = function(offx, offy) {	
-		//普通翻页动画，就是位移
-		if(!this.instance.option.animate || this.instance.option.animate == 'default') {
-			if(offx !== false) {
-				var tranX = 'translate3d(' + offx + 'px,0px,0px)';		
-				css(this.instance.containerInner,'transform', tranX, CSSMAP);
-				this.offsetX = offx;
+		//普通翻页动画，就是位移	
+		var prepage = this.children[this.page - 1];
+		var curpage = this.children[this.page];
+		var nextpage = this.children[this.page + 1];
+		if(offx !== false) {
+			var tranX = 'translate3d(' + offx + 'px,0px,0px)';			
+			if(prepage) {
+				css(prepage,'transform', 'translate3d(' + (offx - this.pageWidth) + 'px,0px,0px)', CSSMAP);
 			}
-			if(offy !== false) {	
-				var tranY = 'translate3d(0px,' + offy + 'px,0px)';		
-				css(this.instance.containerInner,'transform', tranY, CSSMAP);
-				this.offsetY = offy;
+			css(curpage,'transform', tranX, CSSMAP);
+			if(nextpage) {
+				css(nextpage,'transform', 'translate3d(' + (this.pageWidth + offx) + 'px,0px,0px)', CSSMAP);
 			}
+			this.offsetX = offx;
 		}
- 		else {
- 			var next = Math.ceil(Math.abs(offx / this.instance.container.offsetWidth));
- 			var rotate = Math.abs(offx % this.instance.container.offsetWidth) / this.instance.container.offsetWidth * 180;
- 			if(next > this.page) rotate = -rotate;
- 			switch(this.instance.option.animate) {
- 				//翻转效果
- 				case 'flip': {
- 					css(this.instance.containerInner.children[this.page],'transform', 'rotateY(' + rotate + 'deg)', CSSMAP);
- 					css(this.instance.containerInner.children[next],'transform', 'rotateY(' + (-rotate) + 'deg)', CSSMAP);
- 				}
- 			}
- 		}
+		if(offy !== false) {	
+			var tranY = 'translate3d(0px,' + offy + 'px,0px)';	
+			if(prepage) {
+				css(prepage,'transform', 'translate3d(0px,' + (offy - this.pageHeight) + 'px,0px)', CSSMAP);
+			}
+			css(curpage,'transform', tranY, CSSMAP);
+			if(nextpage) {
+				css(nextpage,'transform', 'translate3d(0px,' + (this.pageHeight + offy) + 'px,0px)', CSSMAP);
+			}
+			this.offsetY = offy;
+		}
 	}
 
 	/**
@@ -356,13 +368,13 @@
 		if(this.instance.option.direction == 'x') {
 			if(offx > minOffset && xdirection == 'right') this.previous();
 			else if(offx < -minOffset && xdirection == 'left') this.next();
-			else this.reset();
+			else this.go(this.page);
 		}
 		else {
 			if(offy > minOffset && ydirection == 'down') this.previous();
 			else if(offy < -minOffset && ydirection == 'up') this.next();
-			else this.reset();
-		}
+			else this.go(this.page);
+		}		
 	};
 
 	pageSlip.prototype.next = function() {
@@ -376,9 +388,8 @@
 	/**
 	 * 跳转到指定的页
 	 */
-	pageSlip.prototype.go = function(page) {
-		
-		var len = this.instance.containerInner.children.length;
+	pageSlip.prototype.go = function(page) {		
+		var len = this.children.length;
 		var oldpage = this.page;
 		if(page < 0) page = 0;
 		else if(page > len - 1) 
@@ -391,23 +402,57 @@
 			var stop = this.option.onPageStart.call(this, page);
 			//如果回调返回false , 则中止
 			if(stop === false) {
+				this.reset();
 				return;
 			}
-		}	
+		}
 
 		//开始翻页计算
 		var offx = false,offy = false;
 		if(this.instance.option.direction == 'x') {
-			var w = this.instance.container.offsetWidth;
-			offx = -page * w;//当前滑动距离
+			offx = 0;//当前滑动距离
 		}
 		else {
-			var h = this.instance.container.offsetHeight;
-			offy = -page * h;//当前滑动距离
-		}		
-
-		this.move(offx, offy);
+			offy = 0;//当前滑动距离
+		}
+		
+		//只保留 三页
+		var curpage = this.children[page];
+		if(this.page > page) {
+			//去掉后面的一页
+			var lastpage = this.children[this.page + 1];
+			if(lastpage) this.instance.containerInner.removeChild(lastpage);
+			//插入第一页
+			var firstpage = this.children[page - 1];
+			if(firstpage) {
+				if(this.instance.option.direction == 'x') css(firstpage,'transform', 'translate3d(' + (0 - this.pageWidth) + 'px,0px,0px)', CSSMAP);
+				else css(firstpage,'transform', 'translate3d(0px,' + (0 - this.pageHeight) + 'px,0px)', CSSMAP);
+				this.instance.containerInner.insertBefore(firstpage, curpage);
+			}
+		}
+		else if(this.page < page) {
+			//去掉第一页
+			var firstpage = this.children[this.page - 1];
+			if(firstpage) this.instance.containerInner.removeChild(firstpage);
+			var lastpage = this.children[page + 1];
+			if(lastpage) {
+				if(this.instance.option.direction == 'x') css(lastpage,'transform', 'translate3d(' + this.pageWidth + 'px,0px,0px)', CSSMAP);
+				else css(lastpage,'transform', 'translate3d(0px,' + this.pageHeight + 'px,0px)', CSSMAP);
+				this.instance.containerInner.appendChild(lastpage);
+			}
+		}
+		//如果不变，则只保留三页
+		else if(this.instance.containerInner.children.length > 3) {
+			var chlen = this.instance.containerInner.children.length;
+			for(var i=chlen-1;i>=0;i--) {
+				var ch = this.instance.containerInner.children[i];
+				if(i < page - 1 || i > page + 1) {
+					this.instance.containerInner.removeChild(ch);
+				}
+			}
+		}
 		this.page = this.instance.page = page;
+		this.move(0, 0);
 
 		//翻页后先调用自定义回调，以备做一些其它自定义处理
 		if(this.option && this.option.onPageEnd && typeof this.option.onPageEnd == 'function') {
@@ -415,6 +460,8 @@
 		}
 		//执行动画结束后效果处理
 		this.pageEnd(oldpage, page);
+		this.offsetX = 0;
+		this.offsetY = 0;
 		return true;	
 	};
 
@@ -428,7 +475,7 @@
 		if(typeof desPage == 'string') desPage = parseInt(desPage, 10);
 		if(typeof srcPage == 'string') srcPage = parseInt(srcPage, 10);
 		if(srcPage == desPage || srcPage < 0 || desPage < 0) return;//如果没有换页则不用处理动画
-		var pages = this.instance.containerInner.children;
+		var pages = this.children && this.children.length?this.children:this.instance.containerInner.children;
 		var oldpage = pages[srcPage];
 		var page = pages[desPage];		
 		//加载图片
@@ -500,6 +547,11 @@
 		}
 		//归位
 		this.move(0, 0);
+		var self = this;
+		//设定元素动画
+		setTimeout(function(){
+			self.instance.transition(true, self.instance.containerInner);
+		},10);	
 	}
 
 	/**
@@ -617,6 +669,11 @@
 			css(this.instance.containerInner, 'height', totalheight);			
 		}		
 		this.go(this.page);
+		var self = this;
+		//设定元素动画
+		setTimeout(function(){
+			self.instance.transition(true, self.instance.containerInner);
+		},10);	
 	}
 
 	/**
@@ -625,55 +682,15 @@
 	itemSlip.prototype.end = function(offx, offy, xdirection, ydirection, evt) {
 		if(this.instance.option.direction == 'x') {
 			if(offx > minOffset || offx < -minOffset) {
-				var len = this.instance.containerInner.children.length;
-				var lastindex = 0;
-				var leftwidth = 0;
-				var lastoffx = 0;
-				var mleft = this.instance.container.offsetWidth / 2 - this.offsetX;
-				//找到离中间最近的项
-				for(var i=0;i<len;i++) {		
-					var itemw = this.instance.containerInner.children[i].offsetWidth; 			
-					leftwidth += itemw;
-					if(leftwidth >= mleft) {
-						//如果刚过中间，且它比上一个离中线还近，则取它，否则取上一个
-						//这里是减去itemw/2  因为此项比中线要远
-						if(leftwidth - mleft - itemw / 2 < lastoffx) {
-							lastindex = i;
-						}
-						break;
-					}
-					//离项中间的距离
-					lastoffx = mleft - leftwidth + itemw / 2;
-					lastindex = i;
-				}	
-				this.go(lastindex);
+				var index = this.getCenterIndex(offx, offy);
+				this.go(index);
 			}
 			else this.reset();
 		}
 		else {
 			if(offy > minOffset || offy < -minOffset) {
-				var len = this.instance.containerInner.children.length;
-				var lastindex = 0;
-				var topheight = 0;
-				var lastoffy = 0;
-				var mtop = this.instance.container.offsetHeight / 2 - this.offsetY;
-				//找到离中间最近的项
-				for(var i=0;i<len;i++) {		
-					var itemh = this.instance.containerInner.children[i].offsetHeight; 			
-					topheight += itemh;
-					if(topheight >= mtop) {
-						//如果刚过中间，且它比上一个离中线还近，则取它，否则取上一个
-						//这里是减去itemw/2  因为此项比中线要远
-						if(topheight - mtop - itemh / 2 < lastoffy) {
-							lastindex = i;
-						}
-						break;
-					}
-					//离项中间的距离
-					lastoffy = mtop - topheight + itemh / 2;
-					lastindex = i;
-				}	
-				this.go(lastindex);
+				var index = this.getCenterIndex(offx, offy);
+				this.go(index);
 			}
 			else this.reset();
 		}
@@ -735,14 +752,137 @@
 		return true;	
 	};
 
+	//获取在中间的项索引
+	itemSlip.prototype.getCenterIndex = function(offx, offy) {
+		if(this.instance.option.direction == 'x') {			
+			var len = this.instance.containerInner.children.length;
+			var lastindex = 0;
+			var leftwidth = 0;
+			var lastoffx = 0;
+			var mleft = this.instance.container.offsetWidth / 2 - this.offsetX;
+			//找到离中间最近的项
+			for(var i=0;i<len;i++) {		
+				var itemw = this.instance.containerInner.children[i].offsetWidth; 			
+				leftwidth += itemw;
+				if(leftwidth >= mleft) {
+					//如果刚过中间，且它比上一个离中线还近，则取它，否则取上一个
+					//这里是减去itemw/2  因为此项比中线要远
+					if(leftwidth - mleft - itemw / 2 < lastoffx) {
+						lastindex = i;
+					}
+					break;
+				}
+				//离项中间的距离
+				lastoffx = mleft - leftwidth + itemw / 2;
+				lastindex = i;
+			}	
+			return lastindex;
+		}
+		else {
+			var len = this.instance.containerInner.children.length;
+			var lastindex = 0;
+			var topheight = 0;
+			var lastoffy = 0;
+			var mtop = this.instance.container.offsetHeight / 2 - this.offsetY;
+			//找到离中间最近的项
+			for(var i=0;i<len;i++) {		
+				var itemh = this.instance.containerInner.children[i].offsetHeight; 			
+				topheight += itemh;
+				if(topheight >= mtop) {
+					//如果刚过中间，且它比上一个离中线还近，则取它，否则取上一个
+					//这里是减去itemw/2  因为此项比中线要远
+					if(topheight - mtop - itemh / 2 < lastoffy) {
+						lastindex = i;
+					}
+					break;
+				}
+				//离项中间的距离
+				lastoffy = mtop - topheight + itemh / 2;
+				lastindex = i;
+			}	
+			return lastindex;
+		}
+	}
+
+	/**
+	 * 动画偏移
+	 * 并组止符合条件的事件默认效果，别能在事件全局阻止，会影响业务上的事件
+	 *
+	 */
+	itemSlip.prototype.offset = function(offx, offy, evt) {
+		if(this.instance.option.direction == 'x') {
+			//只有在横向移动更多才移动
+			if(Math.abs(offx) > Math.abs(offy)) {
+				offx += this.offsetX;
+				evt && evt.preventDefault && evt.preventDefault();//阻止默认响应
+			}
+			else offx = false;
+			offy = false;
+		}
+		else {
+			//只有在横向移动更多才移动
+			if(Math.abs(offy) > Math.abs(offx)) {
+				offy += this.offsetY;
+				evt && evt.preventDefault && evt.preventDefault();//阻止默认响应
+			}
+			else offy = false;			
+			offx = false;
+		}
+		return this.move(offx, offy);
+	}
+
+	/**
+	 * 手指滑动移动事件
+	 *
+	 */
+	itemSlip.prototype.move = function(offx, offy) {	
+		//普通翻页动画，就是位移
+		if(!this.instance.option.animate || this.instance.option.animate == 'default') {
+			if(offx !== false) {
+				var tranX = 'translate3d(' + offx + 'px,0px,0px)';		
+				css(this.instance.containerInner,'transform', tranX, CSSMAP);
+				this.offsetX = offx;
+			}
+			if(offy !== false) {	
+				var tranY = 'translate3d(0px,' + offy + 'px,0px)';		
+				css(this.instance.containerInner,'transform', tranY, CSSMAP);
+				this.offsetY = offy;
+			}
+		}
+ 		else {
+ 			var next = Math.ceil(Math.abs(offx / this.instance.container.offsetWidth));
+ 			var rotate = Math.abs(offx % this.instance.container.offsetWidth) / this.instance.container.offsetWidth * 180;
+ 			if(next > this.page) rotate = -rotate;
+ 			switch(this.instance.option.animate) {
+ 				//翻转效果
+ 				case 'flip': {
+ 					css(this.instance.containerInner.children[this.page],'transform', 'rotateY(' + rotate + 'deg)', CSSMAP);
+ 					css(this.instance.containerInner.children[next],'transform', 'rotateY(' + (-rotate) + 'deg)', CSSMAP);
+ 				}
+ 			}
+ 		}
+	}
+
 
 	//设置对象样式
 	function css(el, name, value, map) {
-		map = map || [''];
-		for(var i=0;i<map.length;i++) {
-			//el.css && el.css(map[i] + name,value);
-			el.style && (el.style[map[i] + name] = value);
+		if(isArray(value)) {
+			map = value;
 		}
+		map = map || [''];
+		if(typeof name == 'object') {
+			for(var k in name) {
+				if(typeof name[k] == 'string') {
+					css(el, k, name[k], map);
+				}
+			}
+		}
+		else {
+			for(var i=0;i<map.length;i++) {
+				//el.css && el.css(map[i] + name,value);
+				el.style && (el.style[map[i] + name] = value);
+			}
+		}		
 	}
 
 	//添加或删除样式类名
