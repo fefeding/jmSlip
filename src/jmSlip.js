@@ -232,7 +232,7 @@
 		}
 		else {
 			for(var j=0;j<CSSMAP.length;j++) {
-				this.setStyle('transition', CSSMAP[j]+transition, CSSMAP, el);
+				this.setStyle(CSSMAP[j]+'transition', CSSMAP[j]+transition, null, el);
 			}	
 		}
 	}
