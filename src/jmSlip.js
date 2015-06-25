@@ -28,7 +28,7 @@
 	function jmSlip(el, mode, option) {
 		if(typeof mode == 'object') {
 			option = mode;
-			mode = '';
+			mode = option.mode || 'page';
 		}		
 		option = option || {};
 		option.duration = option.duration || 500;
@@ -45,7 +45,7 @@
 	}
 
 	function slip(el, mode, option) {
-		this.container = el;		
+		this.target = this.container = el;		
 		this.containerInner = this.container.children[0];
 		this.mode = mode;
 		this.page = option.page || 0;
@@ -66,6 +66,10 @@
 				this.slipObj = new scrollSlip(this);
 				break;
 			}
+			case 'drag': {
+				this.slipObj = new dragSlip(this);
+				break;
+			}
 		}
 		css(el, 'overflow', 'hidden');
 		this.reset();
@@ -80,7 +84,7 @@
 		var startPosition = {x:0,y:0},prePosition = {x:0,y:0},curposition = {x:0,y:0};
 		var ydirection = '',xdirection=''; 
 		var startTime = null;//记录滑动开始时间
-		bind(this.container, touchStart, function(evt) {
+		bind(this.target, touchStart, function(evt) {
 			evt = evt || win.event;		
 			if(self.option && self.option.onTouchStart && typeof self.option.onTouchStart == 'function') {
 				var stop = self.option.onTouchStart.call(self.slipObj, evt);
@@ -173,7 +177,7 @@
 				self.transition(true);//添加动画
 				evt.startTime = startTime;//记录滑动起始时间		
 				
-				self.slipObj.end(offx, offy, xdirection, ydirection, evt);
+				self.slipObj.end(offx, offy, xdirection, ydirection, evt);							
 				
 				self.touched = false;
 				self.auto();
@@ -264,13 +268,29 @@
 		this.page = instance && instance.page?instance.page: 0;
 		this.transition = 'transform '+this.option.durations+'s ease-in-out 0s';
 		this.children = [];
-		if(instance && instance.containerInner) {
-			for(var i=0;i<instance.containerInner.children.length;i++) {
-				this.children.push(instance.containerInner.children[i]);
-			}
+		if(instance && instance.containerInner) {			
 			css(instance.containerInner, 'position', 'relative');
-			this.instance.setStyle({'position': 'absolute', 'width':'100%', 'height':'100%', 'top':0,'left':0});
-			if(this.children[this.page]) this.children[this.page].style.zIndex = 10000;
+			if(this.instance.containerInner.children[this.page]) this.instance.containerInner.children[this.page].style.zIndex = 10000;
+		}
+	}
+
+	//初始化子页
+	pageSlip.prototype.initChildren = function() {
+		if(this.instance && this.instance.containerInner) {
+			for(var i=0;i<this.instance.containerInner.children.length;i++) {
+				var ch = this.instance.containerInner.children[i];
+				var exists = false;
+				for(var j=0;j<this.children.length;j++) {
+					if(this.children[j] == ch) {
+						exists = true;
+						break;
+					}
+				}
+				if(!exists) {
+					this.children.push(ch);
+					css(ch, {'position': 'absolute', 'width':'100%', 'height':'100%', 'top':0,'left':0});
+				}
+			}			
 		}
 	}
 
@@ -279,6 +299,9 @@
 	 *
 	 */
 	pageSlip.prototype.reset = function() {		
+		//初始化子页面元素
+		this.initChildren();
+
 		if(this.instance.option.direction == 'x') {
 			this.pageWidth = this.instance.option.width || this.instance.container.offsetWidth;
 			//如果是默认的翻页方式，则内框的宽度为子元素总宽度和
@@ -342,7 +365,7 @@
 			if(prepage) {
 				css(prepage,'transform', 'translate3d(' + (offx - this.pageWidth) + 'px,0px,0px)', CSSMAP);
 			}
-			css(curpage,'transform', tranX, CSSMAP);
+			if(curpage) css(curpage,'transform', tranX, CSSMAP);
 			if(nextpage) {
 				css(nextpage,'transform', 'translate3d(' + (this.pageWidth + offx) + 'px,0px,0px)', CSSMAP);
 			}
@@ -353,7 +376,7 @@
 			if(prepage) {
 				css(prepage,'transform', 'translate3d(0px,' + (offy - this.pageHeight) + 'px,0px)', CSSMAP);
 			}
-			css(curpage,'transform', tranY, CSSMAP);
+			if(curpage) css(curpage,'transform', tranY, CSSMAP);
 			if(nextpage) {
 				css(nextpage,'transform', 'translate3d(0px,' + (this.pageHeight + offy) + 'px,0px)', CSSMAP);
 			}
@@ -680,20 +703,20 @@
 	 * 滑动结束事件
 	 */
 	itemSlip.prototype.end = function(offx, offy, xdirection, ydirection, evt) {
+		var suc = false;
 		if(this.instance.option.direction == 'x') {
 			if(offx > minOffset || offx < -minOffset) {
 				var index = this.getCenterIndex(offx, offy);
-				this.go(index);
+				suc = this.go(index);
 			}
-			else this.reset();
 		}
 		else {
 			if(offy > minOffset || offy < -minOffset) {
 				var index = this.getCenterIndex(offx, offy);
-				this.go(index);
+				suc = this.go(index);
 			}
-			else this.reset();
 		}
+		if(!suc) this.reset();
 	};
 
 	/**
@@ -713,7 +736,10 @@
 			var stop = this.option.onPageStart.call(this, page);
 			//如果回调返回false , 则中止
 			if(stop === false) {
-				return;
+				return false;
+			}
+			else if(typeof stop == 'number') {
+				page = stop;
 			}
 		}	
 
@@ -863,6 +889,59 @@
  		}
 	}
 
+	/**
+	 * 拖放对象
+	 *
+	 */
+	function dragSlip(instance) {
+		this.instance = instance;
+		//把容器重置为document
+		instance.container = document;
+		instance.containerInner = instance.target;
+		this.option = instance.option;
+		this.offsetY = 0;
+		this.offsetX = 0;
+	}
+
+	/**
+	 * 重置和初始化滑动对象
+	 *
+	 */
+	dragSlip.prototype.reset = function() {		
+		this.instance.transition(true, this.instance.containerInner);		
+	}
+
+	/**
+	 * 动画偏移
+	 *
+	 */
+	dragSlip.prototype.offset = function(offx, offy, evt) {		
+		offx += this.offsetX;		
+		offy += this.offsetY;
+		evt && evt.preventDefault && evt.preventDefault();//阻止默认响应			
+		return this.move(offx, offy);
+	}
+
+	/**
+	 * 手指滑动移动事件
+	 *
+	 */
+	dragSlip.prototype.move = function(offx, offy) {		
+		var tranX = 'translate3d(' + offx + 'px,' + offy + 'px,0px)';		
+		css(this.instance.containerInner,'transform', tranX, CSSMAP);
+		this.offsetX = offx;
+		this.offsetY = offy;
+	}
+
+	/**
+	 * 滑动结束事件
+	 */
+	dragSlip.prototype.end = function(offx, offy, xdirection, ydirection, evt) {
+		if(this.option.dragEnd && typeof this.option.dragEnd == 'function') {
+			this.option.dragEnd.call(this);
+		}
+	};
+
 
 	//设置对象样式
 	function css(el, name, value, map) {
@@ -872,7 +951,7 @@
 		map = map || [''];
 		if(typeof name == 'object') {
 			for(var k in name) {
-				if(typeof name[k] == 'string') {
+				if(typeof name[k] == 'string' || typeof name[k] == 'number') {
 					css(el, k, name[k], map);
 				}
 			}
