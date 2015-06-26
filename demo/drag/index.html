@@ -125,9 +125,24 @@
 <a class="act-enter" href="#"><strong class="act-title">狂送iPad,Watch</strong><span class="act-gift-shadow"></span><span class="act-gift-light"></span><span class="act-gift-box"></span><span class="act-golds01"></span><span class="act-golds02"></span><span class="act-golds03"></span></a>
 <script>
 $(function(){	
-	var slip = new jmSlip($('.act-enter'),'drag', {
+  var entry = $('.act-enter');
+	var slip = new jmSlip(entry,'drag', {
 		dragEnd: function() {
-			this.move(0,0);//拖放结束后，可以在这里做一些事件，这里是回到原位。
+		
+      var offx = this.offsetX;//当前偏移量
+      var offy = this.offsetY;
+
+      var posw = entry.offset().left + entry.width() / 2;
+      var winw = $(window).width();
+      //如果偏左的话，则定到左侧
+      if(posw <= winw / 2) {
+        offx -= entry.offset().left;           
+      }
+      else {
+        offx += winw - posw - entry.width() / 2;  
+      }
+      //粘到左右边上
+      this.move(offx, offy);
 		}
 	});
 });	

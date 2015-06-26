@@ -938,7 +938,7 @@
 	 */
 	dragSlip.prototype.end = function(offx, offy, xdirection, ydirection, evt) {
 		if(this.option.dragEnd && typeof this.option.dragEnd == 'function') {
-			this.option.dragEnd.call(this);
+			this.option.dragEnd.call(this, offx, offy);
 		}
 	};
 
