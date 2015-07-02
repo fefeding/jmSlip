@@ -99,8 +99,8 @@
 			self.touched = true;			
 			startTime = evt.timeStamp;
 			var obj = evt.touches && evt.touches.length?evt.touches[0]:evt;
-			prePosition.x = startPosition.x = obj.clientX || obj.pageX;
-			prePosition.y = startPosition.y = obj.clientY || obj.pageY;
+			curposition.x=prePosition.x = startPosition.x = obj.clientX || obj.pageX;
+			curposition.y=prePosition.y = startPosition.y = obj.clientY || obj.pageY;
 			//console.log(touchStart);
 			//console.log(startPosition);
 			self.transition(false);//停止动画
@@ -168,7 +168,7 @@
 				//滑动当前移动距离，让页面跟随手指移动
 				var offx = curposition.x - startPosition.x;
 				var offy = curposition.y - startPosition.y;	
-
+				
 				curposition.x = evt.clientX || evt.pageX;
 				curposition.y = evt.clientY || evt.pageY;
 				//console.log(touchEnd);
