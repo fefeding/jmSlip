@@ -185,6 +185,26 @@
 				//evt.preventDefault && evt.preventDefault();//阻止默认响应
 			}
 		}	
+		//如果需要支持滚轮
+		if(this.option.mousewheel) {
+			var wheelInterval = 0;
+			var wheelOff = 0;
+			bind(document, 'mousewheel', function(e){
+				//清除上次的翻页事件，用户还在滚动中
+				if(wheelInterval) clearTimeout(wheelInterval);
+				e = e || win.event;	
+				var off = e.wheelDelta;	
+				wheelOff += off;		
+				
+				self.slipObj.offset(0, off, e);
+				wheelInterval = setTimeout(function(){
+					self.transition(true, null, 'linear');//动画
+					if(wheelOff > 0) self.slipObj.previous();
+					else if(wheelOff < 0) self.slipObj.next();
+					wheelOff = 0;
+				},500);	
+			});
+		}
 	}
 
 	slip.prototype.auto = function() {
@@ -222,11 +242,12 @@
 	}
 
 	//设置/取消当前动画
-	slip.prototype.transition = function(b, el) {
+	slip.prototype.transition = function(b, el, tran) {
 		if(typeof b == 'undefined') b= true;
-		var transition = 'transform 0s ease 0s';
+		tran = tran || 'ease';
+		var transition = 'transform 0s '+tran+' 0s';
 		if(b) {
-			transition=this.slipObj && this.slipObj.transition?this.slipObj.transition:('transform '+this.option.durations+'s ease 0s');
+			transition=this.slipObj && this.slipObj.transition?this.slipObj.transition:('transform '+this.option.durations+'s '+tran+' 0s');
 		}
 		//当动画为默认的时，效果发生成inner上，否则发生成子元素上
 		if(!this.option.animate || this.option.animate == 'default') {

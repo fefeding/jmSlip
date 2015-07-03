@@ -11,9 +11,33 @@
 <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1, user-scalable=no"/>
 
 </head>
-<body style="margin:0;">
-<div onclick="javascript: this.style['-webkit-transform']='translate3d('+(Math.random() * 80)+'px,'+(Math.random() * 60)+'px,0px)'" style="position:absolute;top:0;left:0;width:20px;height:20px;background-color:red;-webkit-transition:-webkit-transform 0.5s ease 0s;-webkit-transform:
+<body style="margin:0; height: 10024px;">
+<div style="position:absolute;top:0;left:0;width:20px;height:20px;background-color:red;-webkit-transition:-webkit-transform 0.5s ease 0s;-webkit-transform:
 translate3d(10px,80px,0px);"><div>
 
 </body>
+<script>
+/**
+ * 绑定事件到html对象
+ *
+ * @method bind
+ * @param {element} html元素对象
+ * @param {string} name 事件名称
+ * @param {function} fun 事件委托
+ */
+function bind(target,name,fun) {
+  if(target.addEventListener) {
+        target.addEventListener(name,fun, false);
+        return true;
+    }
+    else if(target.attachEvent) {
+        return target.attachEvent("on"+name,fun);
+    }
+    return false;
+}
+//DOMMouseScroll
+bind(document, 'mousewheel', function(e){
+  console.log(e.wheelDelta);
+});
+</script>
 </html>
