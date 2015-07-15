@@ -36,11 +36,12 @@
 .act-enter {
   width: 105px;
   height: 113px;
-  position: fixed;
+  position: absolute;
   right: 5px;
   top: 50%;
   margin-top: -40px;
   z-index: 1000;
+  display: block;
   -webkit-transform: rotate(0deg) scale(.8);
   -moz-transform: rotate(0deg) scale(.8);
   -o-transform: rotate(0deg) scale(.8);
@@ -120,9 +121,17 @@
 }
 </style>
 </head>
-<body style="margin:0; height: 1024px;">
+<body style="margin:0; height: 100%;">
 
-<a class="act-enter" href="#"><strong class="act-title">狂送iPad,Watch</strong><span class="act-gift-shadow"></span><span class="act-gift-light"></span><span class="act-gift-box"></span><span class="act-golds01"></span><span class="act-golds02"></span><span class="act-golds03"></span></a>
+<a class="act-enter" href="#">
+<strong class="act-title">狂送iPad,Watch</strong>
+<span class="act-gift-shadow"></span>
+<span class="act-gift-light"></span>
+<span class="act-gift-box"></span>
+<span class="act-golds01"></span>
+<span class="act-golds02"></span>
+<span class="act-golds03"></span>
+</a>
 <script>
 $(function(){	
   var entry = $('.act-enter');
