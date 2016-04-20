@@ -160,7 +160,27 @@
 <script>
 $(function(){
 	
-	var slip = new jmSlip('page-container','page');
+	var slip = new jmSlip('page-container','page',{
+		mousewheel:true,
+		onPageStart: function(page) {
+			console.log(page);
+		}, //翻页开始前回调，如果返回false则翻页中止
+		onPageEnd: function(oldpage, newpage){
+			console.log(oldpage);
+			console.log(newpage);
+		} ,//翻页结束回调
+		onTouchStart: function(evt){
+			console.log(evt);
+		}, //滑动开始，返回false中止滑动
+		onTouchMove: function(evt, offset){
+			evt.preventDefault();
+			console.log(evt);
+			console.log(offset);//相对于start的位移
+		}, //滑动中，返回false中止
+		onTouchEnd: function(evt){
+			console.log(evt);
+		} //滑动结束，返回false中止
+	});
 
 /*
 	$(window).resize(function(){
