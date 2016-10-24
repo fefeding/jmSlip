@@ -312,6 +312,14 @@
 				if(!exists) {
 					this.children.push(ch);
 					css(ch, {'position': 'absolute', 'width':'100%', 'height':'100%', 'top':0,'left':0});
+					if(this.instance.option.direction == 'x') {
+						var offx = i < this.page?-this.pageWidth:i>this.page?this.pageWidth:0;
+						css(ch,'transform', 'translate3d(' + offx + 'px,0px,0px)', CSSMAP);
+					}
+					else {
+						var offy = i < this.page?-this.pageHeight:i>this.page?this.pageHeight:0;
+						css(ch,'transform', 'translate3d(0px,'+offy+'px,0px)', CSSMAP);
+					}
 				}
 			}			
 		}
@@ -322,8 +330,6 @@
 	 *
 	 */
 	pageSlip.prototype.reset = function() {		
-		//初始化子页面元素
-		this.initChildren();
 
 		if(this.instance.option.direction == 'x') {
 			this.pageWidth = this.instance.option.width || this.instance.container.offsetWidth;
@@ -338,6 +344,11 @@
 			//css(this.instance.containerInner, 'height', this.pageHeight + 'px');
 			//this.instance.setStyle('height', this.pageHeight + 'px');
 		}		
+
+		//初始化子页面元素
+		this.initChildren();
+
+		
 		this.instance.transition(false, this.children);
 		this.go(this.page);
 		var self = this;
@@ -388,7 +399,10 @@
 			if(prepage) {
 				css(prepage,'transform', 'translate3d(' + (offx - this.pageWidth) + 'px,0px,0px)', CSSMAP);
 			}
-			if(curpage) css(curpage,'transform', tranX, CSSMAP);
+			if(curpage) {
+				css(curpage,'transform', tranX, CSSMAP);
+				curpage.style.zIndex = 10000;
+			}
 			if(nextpage) {
 				css(nextpage,'transform', 'translate3d(' + (this.pageWidth + offx) + 'px,0px,0px)', CSSMAP);
 			}
@@ -399,7 +413,10 @@
 			if(prepage) {
 				css(prepage,'transform', 'translate3d(0px,' + (offy - this.pageHeight) + 'px,0px)', CSSMAP);
 			}
-			if(curpage) css(curpage,'transform', tranY, CSSMAP);
+			if(curpage) {
+				css(curpage,'transform', tranY, CSSMAP);
+				curpage.style.zIndex = 10000;
+			}
 			if(nextpage) {
 				css(nextpage,'transform', 'translate3d(0px,' + (this.pageHeight + offy) + 'px,0px)', CSSMAP);
 			}
@@ -730,12 +747,28 @@
 		if(this.instance.option.direction == 'x') {
 			if(offx > minOffset || offx < -minOffset) {
 				var index = this.getCenterIndex(offx, offy);
+				//如果有自定义选中的项，则采用自定义的结果
+				if(this.instance.option.selectHandler) {
+					var newindex = this.instance.option.selectHandler(this.page, index);
+					if(typeof(newindex) == 'number' && newindex != index) index = newindex;
+					else if(newindex === false) {
+						index = this.page;//返回，如果指定为false
+					}
+				}
 				suc = this.go(index);
 			}
 		}
 		else {
 			if(offy > minOffset || offy < -minOffset) {
 				var index = this.getCenterIndex(offx, offy);
+				//如果有自定义选中的项，则采用自定义的结果
+				if(this.instance.option.selectHandler) {
+					var newindex = this.instance.option.selectHandler(this.page, index);
+					if(typeof(newindex) == 'number' && newindex != index) index = newindex;
+					else if(newindex === false) {
+						index = this.page;//返回，如果指定为false
+					}
+				}
 				suc = this.go(index);
 			}
 		}
