@@ -159,14 +159,7 @@
 		function onTouchEnd(evt) {
 			evt = evt || win.event;
 			//console.log(evt);
-			if(self.touched) {
-				if(self.option && self.option.onTouchEnd && typeof self.option.onTouchEnd == 'function') {
-					var stop = self.option.onTouchEnd.call(self.slipObj, evt);
-					//如果回调返回false , 则中止当前滑动
-					if(stop === false) {
-						return;
-					}
-				}
+			if(self.touched) {				
 
 				//滑动当前移动距离，让页面跟随手指移动
 				var offx = curposition.x - startPosition.x;
@@ -176,6 +169,14 @@
 				curposition.y = evt.clientY || evt.pageY;
 				//console.log(touchEnd);
 				//console.log(startPosition);
+
+				if(self.option && self.option.onTouchEnd && typeof self.option.onTouchEnd == 'function') {
+					var stop = self.option.onTouchEnd.call(self.slipObj, evt, {offx: offx, offy: offy});
+					//如果回调返回false , 则中止当前滑动
+					if(stop === false) {
+						return;
+					}
+				}
 
 				self.transition(true);//添加动画
 				evt.startTime = startTime;//记录滑动起始时间		
