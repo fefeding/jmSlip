@@ -81,13 +81,20 @@
 		this.auto();
 	}
 
-	slip.prototype.bindEvent = function() {
+	//销毁组件
+	slip.prototype.destory = function() {
+		this.bindEvent(false); //解绑事件
+	}
+
+	slip.prototype.bindEvent = function(b) {
 		var self = this;
 		this.touched = false;
 		var startPosition = {x:0,y:0},prePosition = {x:0,y:0},curposition = {x:0,y:0};
 		var ydirection = '',xdirection=''; 
+		var isMoved = false;//是否有移动过
 		var startTime = null;//记录滑动开始时间
-		bind(this.target, touchStart, function(evt) {
+		//触控开始事件
+		function onTouchStart(evt) {
 			evt = evt || win.event;		
 			if(self.option && self.option.onTouchStart && typeof self.option.onTouchStart == 'function') {
 				var stop = self.option.onTouchStart.call(self.slipObj, evt);
@@ -99,7 +106,9 @@
 			if(self.interval) {
 				clearTimeout(self.interval);
 			}
-			self.touched = true;			
+			self.touched = true;
+			isMoved = false;
+
 			startTime = evt.timeStamp;
 			var obj = evt.touches && evt.touches.length?evt.touches[0]:evt;
 			curposition.x=prePosition.x = startPosition.x = obj.clientX || obj.pageX;
@@ -109,8 +118,10 @@
 			self.transition(false);//停止动画
 			//evt.stopPropagation && evt.stopPropagation();
 			//evt.preventDefault && evt.preventDefault();//阻止默认响应
-		});
-		bind(this.container, touchMove, function(evt) {
+		}
+		
+		//移动事件
+		function onTouchMove(evt) {
 			evt = evt || win.event;
 			if(self.touched) {
 				var obj = evt.touches && evt.touches.length?evt.touches[0]:evt;
@@ -144,17 +155,16 @@
 					}
 				}	
 
-				if(off) off = self.slipObj.offset(offx, offy, evt);	
+				if(off) {
+					isMoved = true;
+					off = self.slipObj.offset(offx, offy, evt);	
+				}
 				//如果返回中止，则中止此次移动事件
 				if(off === false) {
 					onTouchEnd.call(this, evt);
-				}
-				//evt.stopPropagation && evt.stopPropagation();
-				//evt.preventDefault && evt.preventDefault();//阻止默认响应			
+				}	
 			}
-		});
-		bind(this.container, touchEnd, onTouchEnd);
-		bind(this.container, touchCancel, onTouchEnd);	
+		}
 
 		function onTouchEnd(evt) {
 			evt = evt || win.event;
@@ -181,33 +191,53 @@
 				self.transition(true);//添加动画
 				evt.startTime = startTime;//记录滑动起始时间		
 				
-				self.slipObj.end(offx, offy, xdirection, ydirection, evt);							
+				if(isMoved) self.slipObj.end(offx, offy, xdirection, ydirection, evt);							
 				
 				self.touched = false;
 				self.auto();
 				//evt.stopPropagation && evt.stopPropagation();
 				//evt.preventDefault && evt.preventDefault();//阻止默认响应
-			}
-		}	
+			}			
+		}
+
+		//滚轮事件
+		var wheelInterval = 0;
+		var wheelOff = 0;
+		function onMousewheel(e){
+			//清除上次的翻页事件，用户还在滚动中
+			if(wheelInterval) clearTimeout(wheelInterval);
+			e = e || win.event;	
+			var off = e.wheelDelta;	
+			wheelOff += off;		
+			
+			self.slipObj.offset(0, off, e);
+			wheelInterval = setTimeout(function(){
+				self.transition(true, null, 'linear');//动画
+				if(wheelOff > 0) self.slipObj.previous();
+				else if(wheelOff < 0) self.slipObj.next();
+				wheelOff = 0;
+			},500);	
+		}
+
+		if(b === false) {
+			unbind(this.target, touchStart, onTouchStart);
+			unbind(this.container, touchMove, onTouchMove);
+			unbind(this.container, touchEnd, onTouchEnd);
+			unbind(this.container, touchCancel, onTouchEnd);	
+		}
+		else {			
+			bind(this.target, touchStart, onTouchStart);
+			bind(this.container, touchMove, onTouchMove);
+			bind(this.container, touchEnd, onTouchEnd);
+			bind(this.container, touchCancel, onTouchEnd);	
+		}
+
 		//如果需要支持滚轮
 		if(this.option.mousewheel) {
-			var wheelInterval = 0;
-			var wheelOff = 0;
-			bind(document, 'mousewheel', function(e){
-				//清除上次的翻页事件，用户还在滚动中
-				if(wheelInterval) clearTimeout(wheelInterval);
-				e = e || win.event;	
-				var off = e.wheelDelta;	
-				wheelOff += off;		
-				
-				self.slipObj.offset(0, off, e);
-				wheelInterval = setTimeout(function(){
-					self.transition(true, null, 'linear');//动画
-					if(wheelOff > 0) self.slipObj.previous();
-					else if(wheelOff < 0) self.slipObj.next();
-					wheelOff = 0;
-				},500);	
-			});
+			if(b === false) unbind(document, 'mousewheel', onMousewheel);
+			else {			
+				bind(document, 'mousewheel', onMousewheel);
+			}
 		}
 	}
 
@@ -309,8 +339,17 @@
 	//初始化子页
 	pageSlip.prototype.initChildren = function() {
 		if(this.instance && this.instance.containerInner) {
+			var lastIndex = 1;
 			for(var i=0;i<this.instance.containerInner.children.length;i++) {
 				var ch = this.instance.containerInner.children[i];
+				//如果在属性中没有设置page属性，则表示为后续补齐的，设置其page
+				var index = attr(ch, 'data-page');
+				if(typeof index == 'undefined') {
+					attr(ch, 'data-page', i%lastIndex);
+				}
+				else {
+					lastIndex = parseInt(index, 10)+1;
+				}
 				var exists = false;
 				for(var j=0;j<this.children.length;j++) {
 					if(this.children[j] == ch) {
@@ -352,11 +391,20 @@
 			this.pageHeight = (this.instance.option.height || this.instance.container.offsetHeight);
 			//css(this.instance.containerInner, 'height', this.pageHeight + 'px');
 			//this.instance.setStyle('height', this.pageHeight + 'px');
-		}		
+		}	
+
+		var len = this.instance.containerInner.children.length;
+		//如果设置了循环，且只有二个元素，则复制为4个
+		if(len == 2 && this.option.loop) {
+			for(var i=0;i<len;i++) {
+				var item = this.instance.containerInner.children[i];
+				attr(item, 'data-page', i);
+				this.instance.containerInner.innerHTML += this.instance.containerInner.children[i].outerHTML;
+			}
+		}	
 
 		//初始化子页面元素
 		this.initChildren();
-
 		
 		this.instance.transition(false, this.children);
 		this.go(this.page);
@@ -403,6 +451,10 @@
 		var prepage = this.children[this.page - 1];
 		var curpage = this.children[this.page];
 		var nextpage = this.children[this.page + 1];
+
+		//当前页没加入则直接加入
+		if(curpage && !curpage.parentNode) this.instance.containerInner.appendChild(curpage);
+
 		//如果设置了循环，则最后一面后再回到第一页
 		if(this.option.loop) {
 			//如果没有上一页，则循环到最后一页
@@ -534,10 +586,11 @@
 		}
 		//只保留 三页
 		var curpage = this.children[page];
+		curpage && (curpage.style.zIndex = this.option.zIndex);
 		if(oldpage > page) {
 			//去掉后面的一页
 			var lastpage = this.children[oldpage + 1];
-			if(lastpage && lastpage.parentNode) this.instance.containerInner.removeChild(lastpage);
+			if(lastpage && curpage != lastpage && lastpage.parentNode) this.instance.containerInner.removeChild(lastpage);
 			//如果是从最后一页到第一页，则下一页为第二页,加入后面
 			else if(!lastpage && page == 0) {
 				var lastpage = this.children[page + 1];
@@ -554,7 +607,7 @@
 			}
 			if(firstpage) {
 				//如果原页为最后一个，且跳到第二个页，这时就会导致第一个页面从最后跳到第一个，把它置底，省得会挡住动画
-				if(oldpage == len-1 && page == 1) firstpage.style.zIndex = this.option.zIndex - 2;
+				if(oldpage == len-1 || page == 1) firstpage.style.zIndex = this.option.zIndex - 2;
 				if(this.instance.option.direction == 'x') {					
 					css(firstpage,'transform', 'translate3d(' + (0 - this.pageWidth) + 'px,0px,0px)', CSSMAP);
 				}
@@ -569,7 +622,7 @@
 		else if(oldpage < page) {
 			//去掉第一页
 			var firstpage = this.children[oldpage - 1];
-			if(firstpage && firstpage.parentNode) this.instance.containerInner.removeChild(firstpage);
+			if(firstpage && curpage != firstpage && firstpage.parentNode) this.instance.containerInner.removeChild(firstpage);
 
 			if(oldpage === 0 && page === len-1 && !firstpage) {
 				firstpage = this.children[page - 1];
@@ -589,7 +642,7 @@
 			}
 			if(lastpage) {
 				//如果原页为第一个，且跳到最后第二页，这时就会导致最后一页从第一个跳到最后，把它置底，省得会挡住动画
-				if(oldpage == 0 && page == len-2) lastpage.style.zIndex = this.option.zIndex - 2;
+				if(oldpage == 0 || page == len-2) lastpage.style.zIndex = this.option.zIndex - 2;
 				if(this.instance.option.direction == 'x') css(lastpage,'transform', 'translate3d(' + this.pageWidth + 'px,0px,0px)', CSSMAP);
 				else css(lastpage,'transform', 'translate3d(0px,' + this.pageHeight + 'px,0px)', CSSMAP);
 				if(!lastpage.parentNode) {
@@ -606,7 +659,7 @@
 				if(i < page - 1 || i > page + 1) {
 					if(page == 0 && this.option.loop && i == chlen-1) continue;
 					else if(page == chlen-1 && this.option.loop && i == 0) continue;
-					if(ch.parentNode) this.instance.containerInner.removeChild(ch);
+					if(ch.parentNode  && curpage != ch) this.instance.containerInner.removeChild(ch);
 				}
 			}
 		}	
@@ -616,10 +669,11 @@
 
 		//翻页后先调用自定义回调，以备做一些其它自定义处理
 		if(this.option && this.option.onPageEnd && typeof this.option.onPageEnd == 'function') {
-			this.option.onPageEnd.call(this, oldpage, page);
+			var pageindex = attr(curpage, 'data-page') || page;
+			this.option.onPageEnd.call(this, oldpage, pageindex);
 		}
 		//执行动画结束后效果处理
-		this.pageEnd(oldpage, page);
+		//this.pageEnd(oldpage, page);
 		this.offsetX = 0;
 		this.offsetY = 0;
 		return true;	
@@ -1199,146 +1253,30 @@
 	    return false;
 	}
 
+	/**
+	 * 解绑事件
+	 * 
+	 * @method bind
+	 * @param {element} html元素对象
+	 * @param {string} name 事件名称
+	 * @param {function} fun 事件委托
+	 */
+	function unbind(target,name,fun) {
+		if(target.removeEventListener) {
+	        target.removeEventListener(name,fun, false);
+	        return true;
+	    }
+	    else if(target.detachEvent) {
+	        return target.detachEvent("on"+name,fun);
+	    }  
+	    return false;
+	}
+
 	//检查对象是否为数组
 	function isArray(arr) {
 		var t = Object.prototype.toString.call(arr);		
 	    return t == '[object Array]' || t == '[object NodeList]';
-	}
-
-	//初始化动画样式
-	(function(){
-		var nod = document.createElement('style');  
-		var styleText = '@-webkit-keyframes jmslip-flash-keyframes\
-						{\
-							0%   {\
-								-webkit-transform: translate3d(2px,-2px,0px);\
-								transform: translate3d(2px,-2px,0px);\
-							}\
-							25%  {\
-								-webkit-transform: translate3d(4px,-4px,0px);\
-								transform: translate3d(4px,-4px,0px);\
-							}\
-							50%  {\
-								-webkit-transform: translate3d(4px,4px,0px);\
-								transform: translate3d(4px,4px,0px);\
-							}\
-							75%  {\
-								-webkit-transform: translate3d(-4px,4px,0px);\
-								transform: translate3d(-4px,4px,0px);\
-							}\
-							100% {\
-								-webkit-transform: translate3d(-4px,-4px,0px);\
-								transform: translate3d(-4px,-4px,0px);\
-							}\
-						}\
-						.jmslip-ani-flash1 {\
-							-webkit-animation: jmslip-flash-keyframes 4s ease-in 0s infinite alternate;\
-							animation: jmslip-flash-keyframes 4s ease-in 0s infinite alternate;\
-						}\
-						.jmslip-ani-flash2 {\
-							-webkit-animation: jmslip-flash-keyframes 6s ease-in 0s infinite alternate;\
-							animation: jmslip-flash-keyframes 6s ease-in 0s infinite alternate;\
-						}\
-						.jmslip-ani-flash3 {\
-							-webkit-animation: jmslip-flash-keyframes 7s ease-in 0s infinite alternate;\
-							animation: jmslip-flash-keyframes 7s ease-in 0s infinite alternate;\
-						}\
-						.jmslip-ani {\
-							-moz-transition: all 1s ease-in;\
-						    -webkit-transition: all 1s ease-in;\
-						    -o-transition: all 1s ease-in;\
-						    -ms-transition: all 1s ease-in;\
-						    transition: all 1s ease-in;\
-						    display: inline-block;\
-						}\
-						.jmslip-ani-delay1{\
-							-webkit-transition-delay: 0.1s;\
-							transition-delay: 0.1s;\
-						}\
-						.jmslip-ani-delay2{\
-							-webkit-transition-delay: 0.2s;\
-							transition-delay: 0.2s;\
-						}\
-						.jmslip-ani-delay3{\
-							-webkit-transition-delay: 0.3s;\
-							transition-delay: 0.3s;\
-						}\
-						.jmslip-ani-delay4{\
-							-webkit-transition-delay: 0.4s;\
-							transition-delay: 0.4s;\
-						}\
-						.jmslip-ani-delay5{\
-							-webkit-transition-delay: 0.5s;\
-							transition-delay: 0.5s;\
-						}\
-						.jmslip-ani-delay6{\
-							-webkit-transition-delay: 0.6s;\
-							transition-delay: 0.6s;\
-						}\
-						.jmslip-ani-delay7{\
-							-webkit-transition-delay: 0.7s;\
-							transition-delay: 0.7s;\
-						}\
-						.jmslip-ani-opacity {\
-							opacity: 0;\
-						}\
-						.jmslip-ani-normal {\
-							-moz-transform: translate3d(0,0,0) scale3d(1,1,1)!important;\
-						    -webkit-transform: translate3d(0,0,0) scale3d(1,1,1)!important;\
-						    -o-transform: translate3d(0,0,0) scale3d(1,1,1)!important;\
-						    -ms-transform: translate3d(0,0,0) scale3d(1,1,1)!important;\
-						    transform: translate3d(0,0,0) scale3d(1,1,1)!important;\
-						    opacity: 1!important;\
-						}\
-						.jmslip-ani-leftin {\
-						    -moz-transform: translateX(-150%);\
-						    -webkit-transform: translateX(-150%);\
-						    -o-transform: translateX(-150%);\
-						    -ms-transform: translateX(-150%);\
-						    transform: translateX(-150%); \
-						}\
-						.jmslip-ani-rightin {	\
-						    -moz-transform: translateX(500px);\
-						    -webkit-transform: translateX(500px);\
-						    -o-transform: translateX(500px);\
-						    -ms-transform: translateX(500px);\
-						    transform: translateX(500px);  \
-						}\
-						.jmslip-ani-topin {\
-							-moz-transform: translateY(-500px);\
-						    -webkit-transform: translateY(-500px);\
-						    -o-transform: translateY(-500px);\
-						    -ms-transform: translateY(-500px);\
-						    transform: translateY(-500px);  \
-						}\
-						.jmslip-ani-bottomin {\
-							-moz-transform: translateY(500px);\
-						    -webkit-transform: translateY(500px);\
-						    -o-transform: translateY(500px);\
-						    -ms-transform: translateY(500px);\
-						    transform: translateY(500px);  \
-						}\
-						.jmslip-ani-scalebig{\
-							-moz-transform: scale3d(0.2,0.2,1);\
-						    -webkit-transform: scale3d(0.2,0.2,1);\
-						    -o-transform: scale3d(0.2,0.2,1);\
-						    -ms-transform: scale3d(0.2,0.2,1);\
-						    transform: scale3d(0.2,0.2,1);\
-						}\
-						.jmslip-ani-scalesmall{\
-							-moz-transform: scale3d(2,2,1);\
-						    -webkit-transform: scale3d(2,2,1);\
-						    -o-transform: scale3d(2,2,1);\
-						    -ms-transform: scale3d(2,2,1);\
-						    transform: scale3d(2,2,1);\
-						}'; 		
-		if(nod.styleSheet){         //ie下  
-			nod.styleSheet.cssText = styleText;  
-		} else {  
-			nod.innerHTML = styleText;
-		}  
-		document.getElementsByTagName('head')[0].appendChild(nod);  
-	})();
+	}	
 
 	// 有 Sea.js 等 CMD 模块加载器存在
 	if (typeof define === "function" && define.cmd) {

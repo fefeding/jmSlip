@@ -8,7 +8,7 @@
 <meta content="black" name="apple-mobile-web-app-status-bar-style">
 <meta content="telephone=no" name="format-detection">
 <meta content="email=no" name="format-detection">
-<title>日历2016</title>
+<title>日历</title>
 <style>
 body,html{
 	font-family: Helvetica;
@@ -259,6 +259,12 @@ body,html{
 		//定位于选择的那一天
 		slipCalendar.go($(this).index());			
 	});
+
+	$('.js-today').click(function(){
+		slipCalendar.go($('.js-calendar-days li[data-day="20161019"]').index());
+	});
+
+	//如果动态改变了日期，比如新增了某些天，则可以用slipCalendar.reset()重置日历
 </script>
 </body>
 </html>
