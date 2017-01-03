@@ -166,9 +166,45 @@ $(function(){
 		onPageStart: function(page) {
 			console.log(page);
 		}, //翻页开始前回调，如果返回false则翻页中止
-		onPageEnd: function(oldpage, newpage){
-			console.log(oldpage);
-			console.log(newpage);
+		onPageEnd: function(srcPage, desPage){
+			if(typeof desPage == 'string') desPage = parseInt(desPage, 10);
+			if(typeof srcPage == 'string') srcPage = parseInt(srcPage, 10);
+			if(srcPage == desPage || srcPage < 0 || desPage < 0) return;//如果没有换页则不用处理动画
+			var pages = this.children && this.children.length?this.children:this.instance.containerInner.children;
+			var oldpage = $(pages[srcPage]);
+			var page = $(pages[desPage]);		
+			//加载图片
+			var imgs = page.find('img[data-src]');
+			for(var i=0;i<imgs.length;i++) {
+				var img = $(imgs[i]);
+				img.attr('src', img.attr('data-src'));
+			}
+			//把指定了动画效果的元素归位，这样就形动了动画出现
+			$('.jmslip-ani').toggleClass('jmslip-ani-normal',true);
+			//先去除动画效果，让元素到动画前位置，再加上动画基类，为了过去的页面改变不出现动画效果。
+			if(oldpage.length) {
+				var anis = oldpage.find('.jmslip-ani');
+				anis.toggleClass('jmslip-ani', false);
+				anis.toggleClass('jmslip-ani-normal', false);
+				setTimeout(function(){
+					anis.toggleClass('jmslip-ani', true);
+				},20);
+			}
+			
+			setTimeout(function(){
+				var fs = page.find('.jmslip-flash');
+				for(var i=0;i<fs.length;i++) {
+					var cn = 'jmslip-flash'+((i % 3)+1);
+					$(fs[i]).toggleClass(cn, true);
+				}
+				if(oldpage.length) {
+					fs = oldpage.find('.jmslip-flash');
+					for(var i=0;i<fs.length;i++) {
+						var cn = 'jmslip-flash'+((i % 3)+1);
+						$(fs[i]).toggleClass(cn, false);
+					}
+				}			
+			},500);
 		} ,//翻页结束回调
 		onTouchStart: function(evt){
 			console.log(evt);
