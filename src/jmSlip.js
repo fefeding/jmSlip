@@ -70,6 +70,10 @@
 				this.slipObj = new scrollSlip(this);
 				break;
 			}
+			case 'scrollItem': {				
+				this.slipObj = new scrollItemSlip(this);
+				break;
+			}
 			case 'drag': {
 				this.slipObj = new dragSlip(this);
 				break;
@@ -84,6 +88,9 @@
 	//销毁组件
 	slip.prototype.destory = function() {
 		this.bindEvent(false); //解绑事件
+		if(this.interval) {
+			clearTimeout(this.interval);
+		}
 	}
 
 	slip.prototype.bindEvent = function(b) {
@@ -266,7 +273,7 @@
 						page = self.slipObj.page + dir;
 					}
 				}				
-				self.slipObj.go && self.slipObj.go(page);
+				self.slipObj.go && self.slipObj.go(page, 'auto');
 				self.interval = setTimeout(intervalHandler,self.option.changeTime);
 			}
 			this.interval = setTimeout(intervalHandler,this.option.changeTime);
@@ -450,7 +457,7 @@
 		//普通翻页动画，就是位移	
 		var prepage = this.children[this.page - 1];
 		var curpage = this.children[this.page];
-		var nextpage = this.children[this.page + 1];
+		var nextpage = this.children[parseInt(this.page||0,10) + 1];
 
 		//当前页没加入则直接加入
 		if(curpage && !curpage.parentNode) this.instance.containerInner.appendChild(curpage);
@@ -543,7 +550,7 @@
 	/**
 	 * 跳转到指定的页
 	 */
-	pageSlip.prototype.go = function(page) {		
+	pageSlip.prototype.go = function(page, actionType) {		
 		var len = this.children.length;
 		var oldpage = this.page;
 		if(page < 0) {
@@ -568,7 +575,7 @@
 
 		//翻页前先调用自定义回调，如果返回false则中止
 		if(this.option && this.option.onPageStart && typeof this.option.onPageStart == 'function') {
-			var stop = this.option.onPageStart.call(this, page);
+			var stop = this.option.onPageStart.call(this, page, oldpage, actionType);
 			//如果回调返回false , 则中止
 			if(stop === false) {
 				this.reset();
@@ -670,7 +677,7 @@
 		//翻页后先调用自定义回调，以备做一些其它自定义处理
 		if(this.option && this.option.onPageEnd && typeof this.option.onPageEnd == 'function') {
 			var pageindex = attr(curpage, 'data-page') || page;
-			this.option.onPageEnd.call(this, oldpage, pageindex);
+			this.option.onPageEnd.call(this, oldpage, pageindex, actionType);
 		}
 		//执行动画结束后效果处理
 		//this.pageEnd(oldpage, page);
@@ -1153,6 +1160,167 @@
 		}
 	};
 
+	/**
+	 * 滑动列表中的子项，但事件是绑在了父节点
+	 *
+	 */
+	function scrollItemSlip(instance) {
+		this.instance = instance;
+		this.option = instance.option;
+	}
+
+	/**
+	 * 重置和初始化滑动对象
+	 *
+	 */
+	scrollItemSlip.prototype.reset = function(target) {
+		//如果指定了某个对象，则只对它复位
+		if(target) {
+			//归位
+			this.move(0, 0, target);
+			this.instance.transition(true, target);
+			return;
+		}
+		var self = this;
+		//设定元素动画
+		setTimeout(function(){
+			var len = self.instance.container.children.length;
+			for(var i=0;i<len;i++) {
+				var target = self.instance.container.children[i];
+				//如果有指定CSS选择器
+				if(self.option.itemSelector) {
+					target = target.querySelector(self.option.itemSelector);
+					if(!target) continue;//没找到就不处理
+				}
+				self.reset(target);
+			}			
+		},10);	
+	}
+
+	/**
+	 * 动画偏移
+	 * 并组止符合条件的事件默认效果，别能在事件全局阻止，会影响业务上的事件
+	 *
+	 */
+	scrollItemSlip.prototype.offset = function(offx, offy, evt) {
+		if(!evt) return;
+		var target = evt.target||evt.srcElement;		
+		//如果有指定CSS选择器
+		if(this.option.itemSelector) {
+			target = elParent(target, this.option.itemSelector);
+			if(!target) return;//没找到就不处理
+		}
+		if(this.instance.option.direction == 'x') {
+			//只有在横向移动更多才移动
+			if(Math.abs(offx) > Math.abs(offy)) {
+				var tx = Number(attr(target, 'data-offsetx'))||0;//读取当前偏移量
+				offx += tx;
+
+				//如果有指定滑向，则不能反向滑
+				if(this.option.orientation == 'left' && offx > 0) return
+				else if(this.option.orientation == 'right' && offx < 0) return;
+
+				evt && evt.preventDefault && evt.preventDefault();//阻止默认响应
+			}
+			else offx = false;
+			offy = false;
+		}
+		else {
+			//只有在横向移动更多才移动
+			if(Math.abs(offy) > Math.abs(offx)) {
+				var ty = Number(attr(target, 'data-offsety'))||0;//读取当前偏移量
+				offy += ty;
+				evt && evt.preventDefault && evt.preventDefault();//阻止默认响应
+			}
+			else offy = false;			
+			offx = false;
+		}
+		return this.move(offx, offy, target);
+	}
+
+	/**
+	 * 手指滑动移动事件
+	 *
+	 */
+	scrollItemSlip.prototype.move = function(offx, offy, target) {			
+		if(!target) return;
+
+		if(offx !== false) {
+			var tranX = 'translate3d(' + offx + 'px,0px,0px)';		
+			css(target,'transform', tranX, CSSMAP);
+			attr(target, 'data-offsetx', offx);//把偏移量写到属性中
+		}
+		if(offy !== false) {	
+			var tranY = 'translate3d(0px,' + offy + 'px,0px)';		
+			css(target,'transform', tranY, CSSMAP);
+			attr(target, 'data-offsety', offy);//把偏移量写到属性中
+		}
+	}
+
+	/**
+	 * 滑动结束事件
+	 */
+	scrollItemSlip.prototype.end = function(offx, offy, xdirection, ydirection, evt) {
+		var target = evt.target||evt.srcElement;		
+		//如果有指定CSS选择器
+		if(this.option.itemSelector) {
+			target = elParent(target, this.option.itemSelector);
+			if(!target) return;//没找到就不处理
+		}
+
+		if(this.instance.option.direction == 'x') {
+			var tx = Number(attr(target, 'data-offsetx'))||0;
+			if(!tx) return;
+
+			//如果只能左向滑，则复位
+			if((tx > 0 && this.option.orientation == 'left') || (tx < 0 && this.option.orientation == 'right')) this.reset(target);
+			else {
+				var maxoff = this.option.maxOffset||target.offsetWidth;
+				//左向滑，如果超过了一半最大滑动，则滑满
+				if(this.option.orientation == 'left' && tx <= -maxoff/2) {
+					this.move(-maxoff , false, target);
+				}
+				//右向滑，如果超过了一半最大滑动，则滑满
+				else if(this.option.orientation == 'right' && tx >= maxoff/2) {
+					this.move(maxoff , false, target);
+				}
+				else {
+					//复位
+					this.reset(target);
+				}
+			}
+		}
+		else {
+			var ty = Number(attr(target, 'data-offsety'))||0;
+			if(!ty) return;
+
+			if((ty > 0 && this.option.orientation == 'top')||(ty<0 && this.option.orientation == 'bottom')) this.reset(target);
+			else {
+				var maxoff = this.option.maxOffset||target.offsetHeight;
+				//上向滑，如果超过了一半最大滑动，则滑满
+				if(this.option.orientation == 'top' && ty <= -maxoff/2) {
+					this.move(false, -maxoff, target);
+				}
+				//下向滑，如果超过了一半最大滑动，则滑满
+				else if(this.option.orientation == 'bottom' && ty >= maxoff/2) {
+					this.move(false , maxoff, target);
+				}
+				else {
+					//复位
+					this.reset(target);
+				}
+			}
+		}
+		
+		//如果上一个不是这个，且设置了互斥，则回位上一个
+		if(this.last_target && this.last_target != target) {
+			this.reset(this.last_target);
+		}
+		this.last_target = target;
+
+		//滚动事件回调
+		if(this.instance.option.onScrollEnd) this.instance.option.onScrollEnd.call(this, tx, ty, xdirection, ydirection, evt, target);
+	};	
 
 	//设置对象样式
 	function css(el, name, value, map) {
@@ -1277,6 +1445,18 @@
 		var t = Object.prototype.toString.call(arr);		
 	    return t == '[object Array]' || t == '[object NodeList]';
 	}	
+
+	//查找元素父级，通过选择器先择
+	function elParent(el, selector) {
+		var parent = el.parentElement||el.parentNode;
+		if(!parent) return null;
+		var sel = parent.querySelector(selector);
+		if(sel && sel == el) return el;
+		//如果没有找到，，则继续从父元素找，直接找完为止
+		else {
+			return elParent(parent, selector);
+		}
+	}
 
 	// 有 Sea.js 等 CMD 模块加载器存在
 	if (typeof define === "function" && define.cmd) {
