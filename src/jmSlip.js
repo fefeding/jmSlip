@@ -122,7 +122,13 @@
 			curposition.y=prePosition.y = startPosition.y = obj.clientY || obj.pageY;
 			//console.log(touchStart);
 			//console.log(startPosition);
-			self.transition(false);//停止动画
+			//如果有停止动画的函数，则直接调用，否则调用默认的
+			if(self.slipObj && self.slipObj.setTransition) {
+				self.slipObj.setTransition(false);
+			}
+			else {
+				self.transition(false);//停止动画
+			}
 			//evt.stopPropagation && evt.stopPropagation();
 			//evt.preventDefault && evt.preventDefault();//阻止默认响应
 		}
@@ -195,7 +201,15 @@
 					}
 				}
 
-				self.transition(true);//添加动画
+				//添加动画
+				//如果有启用动画的函数，则直接调用，否则调用默认的
+				if(self.slipObj && self.slipObj.setTransition) {
+					self.slipObj.setTransition(true);
+				}
+				else {
+					self.transition(true);//启用动画
+				}
+
 				evt.startTime = startTime;//记录滑动起始时间		
 				
 				if(isMoved) self.slipObj.end(offx, offy, xdirection, ydirection, evt);							
@@ -1173,12 +1187,12 @@
 	 * 重置和初始化滑动对象
 	 *
 	 */
-	scrollItemSlip.prototype.reset = function(target) {
+	scrollItemSlip.prototype.reset = function(target) {	
 		//如果指定了某个对象，则只对它复位
 		if(target) {
 			//归位
 			this.move(0, 0, target);
-			this.instance.transition(true, target);
+			this.setTransition(true, target);
 			return;
 		}
 		var self = this;
@@ -1195,6 +1209,30 @@
 				self.reset(target);
 			}			
 		},10);	
+	}
+
+	/**
+	 * 启用或停止动画效果
+	 * 主要用在拖动时，更灵敏
+	 */
+	scrollItemSlip.prototype.setTransition = function(b, el) {
+		//如果指定了元素，则直接设置它即可
+		if(el) {			
+			this.instance.transition(!!b, el);
+			return;
+		}
+
+		var len = this.instance.container.children.length;
+		for(var i=0;i<len;i++) {
+			var target = this.instance.container.children[i];
+			//如果有指定CSS选择器
+			if(this.option.itemSelector) {
+				target = target.querySelector(this.option.itemSelector);
+			}
+			if(target) {
+				this.setTransition(b, target);
+			}
+		}
 	}
 
 	/**
@@ -1216,9 +1254,11 @@
 				var tx = Number(attr(target, 'data-offsetx'))||0;//读取当前偏移量
 				offx += tx;
 
+				var maxoff = this.option.maxOffset||target.offsetWidth;
+
 				//如果有指定滑向，则不能反向滑
-				if(this.option.orientation == 'left' && offx > 0) return
-				else if(this.option.orientation == 'right' && offx < 0) return;
+				if(this.option.orientation == 'left' && (offx > 0 || offx < -maxoff)) return
+				else if(this.option.orientation == 'right' && (offx < 0 || offx > maxoff)) return;
 
 				evt && evt.preventDefault && evt.preventDefault();//阻止默认响应
 			}
@@ -1230,6 +1270,13 @@
 			if(Math.abs(offy) > Math.abs(offx)) {
 				var ty = Number(attr(target, 'data-offsety'))||0;//读取当前偏移量
 				offy += ty;
+
+				var maxoff = this.option.maxOffset||target.offsetHeight;
+
+				//如果有指定滑向，则不能反向滑
+				if(this.option.orientation == 'top' && (offy > 0 || offy < -maxoff)) return
+				else if(this.option.orientation == 'bottom' && (offy < 0 || offy > maxoff)) return;
+
 				evt && evt.preventDefault && evt.preventDefault();//阻止默认响应
 			}
 			else offy = false;			
