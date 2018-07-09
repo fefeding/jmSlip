@@ -45,18 +45,19 @@
 		<li>
 			<a href="#" style="background-image:url(http://gqq.gtimg.com/zhuanlan/sBannerPic_20141107145405.jpg);"></a>
 		</li>
-		<li>
+		<!--<li>
 			<a href="#"  style="background-image:url(http://gqq.gtimg.com/zhuanlan/sBannerPic_20141031200630.jpg);"></a>
 		</li>
 		<li>
 			<a href="#" style="background-image:url(http://gqq.gtimg.com/zhuanlan/sBannerPic_20141107145440.jpg);"></a>
-		</li>
+		</li>-->
 	</ul>
 </section>
 <script>
 var slip = new jmSlip('banner','page',{
-	changeTime: 2000, 
+	changeTime: 1000, 
 	direction: 'x',
+	loop: true,//循环切换
 	mousewheel:true,//支持滚轮
 	onPageStart: function(page) {
 		console.log(page);

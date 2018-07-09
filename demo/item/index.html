@@ -170,14 +170,15 @@ var slip = new jmSlip('banner','item',{
 	//changeTime: 1500, 
 	mousewheel:true,//支持滚轮
 	direction: 'x', 
-	page: 2,
+	page: 0,
 	duration: 800,
+	itemOffWidth: 1,
 	onTouchStart: function(){
 		$('#banner li.cur').toggleClass('cur',false);
 	},
 	onTouchMove: function(evt, offset) {
 		evt.preventDefault();
-
+		//找到中间项，然后让它滑过中间时放大
 		var len = this.instance.containerInner.children.length;		
 		var leftwidth = 0;
 		var lastoffx = 0;
@@ -203,7 +204,15 @@ var slip = new jmSlip('banner','item',{
 			lastindex = i;
 		}	
 	},
+	onPageStart: function(p) {
+		//限制这跳到第三个项，超过注返回第三个
+		/*if(p > 2) {
+			this.go(2);
+			return false;
+		}*/
+	},
 	onPageEnd: function(oldPage,newPage) {
+		
 		setTimeout(function(){
 			$('#banner li.cur').toggleClass('cur',false);
 			$('#banner li').eq(newPage).toggleClass('cur',true);

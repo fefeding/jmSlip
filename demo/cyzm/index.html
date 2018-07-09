@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1, user-scalable=no"/>
 <link rel="SHORTCUT ICON" href="http://cdn.huodongxing.com/Content/img/favicon.ico">
+<style>@-webkit-keyframes jmslip-flash-keyframes						{							0%   {								-webkit-transform: translate3d(2px,-2px,0px);								transform: translate3d(2px,-2px,0px);							}							25%  {								-webkit-transform: translate3d(4px,-4px,0px);								transform: translate3d(4px,-4px,0px);							}							50%  {								-webkit-transform: translate3d(4px,4px,0px);								transform: translate3d(4px,4px,0px);							}							75%  {								-webkit-transform: translate3d(-4px,4px,0px);								transform: translate3d(-4px,4px,0px);							}							100% {								-webkit-transform: translate3d(-4px,-4px,0px);								transform: translate3d(-4px,-4px,0px);							}						}						.jmslip-ani-flash1 {							-webkit-animation: jmslip-flash-keyframes 4s ease-in 0s infinite alternate;							animation: jmslip-flash-keyframes 4s ease-in 0s infinite alternate;						}						.jmslip-ani-flash2 {							-webkit-animation: jmslip-flash-keyframes 6s ease-in 0s infinite alternate;							animation: jmslip-flash-keyframes 6s ease-in 0s infinite alternate;						}						.jmslip-ani-flash3 {							-webkit-animation: jmslip-flash-keyframes 7s ease-in 0s infinite alternate;							animation: jmslip-flash-keyframes 7s ease-in 0s infinite alternate;						}						.jmslip-ani {							-moz-transition: all 1s ease-in;						    -webkit-transition: all 1s ease-in;						    -o-transition: all 1s ease-in;						    -ms-transition: all 1s ease-in;						    transition: all 1s ease-in;						    display: inline-block;						}						.jmslip-ani-delay1{							-webkit-transition-delay: 0.1s;							transition-delay: 0.1s;						}						.jmslip-ani-delay2{							-webkit-transition-delay: 0.2s;							transition-delay: 0.2s;						}						.jmslip-ani-delay3{							-webkit-transition-delay: 0.3s;							transition-delay: 0.3s;						}						.jmslip-ani-delay4{							-webkit-transition-delay: 0.4s;							transition-delay: 0.4s;						}						.jmslip-ani-delay5{							-webkit-transition-delay: 0.5s;							transition-delay: 0.5s;						}						.jmslip-ani-delay6{							-webkit-transition-delay: 0.6s;							transition-delay: 0.6s;						}						.jmslip-ani-delay7{							-webkit-transition-delay: 0.7s;							transition-delay: 0.7s;						}						.jmslip-ani-opacity {							opacity: 0;						}						.jmslip-ani-normal {							-moz-transform: translate3d(0,0,0) scale3d(1,1,1)!important;						    -webkit-transform: translate3d(0,0,0) scale3d(1,1,1)!important;						    -o-transform: translate3d(0,0,0) scale3d(1,1,1)!important;						    -ms-transform: translate3d(0,0,0) scale3d(1,1,1)!important;						    transform: translate3d(0,0,0) scale3d(1,1,1)!important;						    opacity: 1!important;						}						.jmslip-ani-leftin {						    -moz-transform: translateX(-150%);						    -webkit-transform: translateX(-150%);						    -o-transform: translateX(-150%);						    -ms-transform: translateX(-150%);						    transform: translateX(-150%); 						}						.jmslip-ani-rightin {							    -moz-transform: translateX(500px);						    -webkit-transform: translateX(500px);						    -o-transform: translateX(500px);						    -ms-transform: translateX(500px);						    transform: translateX(500px);  						}						.jmslip-ani-topin {							-moz-transform: translateY(-500px);						    -webkit-transform: translateY(-500px);						    -o-transform: translateY(-500px);						    -ms-transform: translateY(-500px);						    transform: translateY(-500px);  						}						.jmslip-ani-bottomin {							-moz-transform: translateY(500px);						    -webkit-transform: translateY(500px);						    -o-transform: translateY(500px);						    -ms-transform: translateY(500px);						    transform: translateY(500px);  						}						.jmslip-ani-scalebig{							-moz-transform: scale3d(0.2,0.2,1);						    -webkit-transform: scale3d(0.2,0.2,1);						    -o-transform: scale3d(0.2,0.2,1);						    -ms-transform: scale3d(0.2,0.2,1);						    transform: scale3d(0.2,0.2,1);						}						.jmslip-ani-scalesmall{							-moz-transform: scale3d(2,2,1);						    -webkit-transform: scale3d(2,2,1);						    -o-transform: scale3d(2,2,1);						    -ms-transform: scale3d(2,2,1);						    transform: scale3d(2,2,1);						}</style>
 <link href="css/index.css?201410261836" rel="stylesheet">
 <script src="http://mat1.gtimg.com/www/mobi/js/zepto.min.js"></script>
 <script src="../../src/jmSlip.js"></script>
@@ -165,9 +166,45 @@ $(function(){
 		onPageStart: function(page) {
 			console.log(page);
 		}, //翻页开始前回调，如果返回false则翻页中止
-		onPageEnd: function(oldpage, newpage){
-			console.log(oldpage);
-			console.log(newpage);
+		onPageEnd: function(srcPage, desPage){
+			if(typeof desPage == 'string') desPage = parseInt(desPage, 10);
+			if(typeof srcPage == 'string') srcPage = parseInt(srcPage, 10);
+			if(srcPage == desPage || srcPage < 0 || desPage < 0) return;//如果没有换页则不用处理动画
+			var pages = this.children && this.children.length?this.children:this.instance.containerInner.children;
+			var oldpage = $(pages[srcPage]);
+			var page = $(pages[desPage]);		
+			//加载图片
+			var imgs = page.find('img[data-src]');
+			for(var i=0;i<imgs.length;i++) {
+				var img = $(imgs[i]);
+				img.attr('src', img.attr('data-src'));
+			}
+			//把指定了动画效果的元素归位，这样就形动了动画出现
+			$('.jmslip-ani').toggleClass('jmslip-ani-normal',true);
+			//先去除动画效果，让元素到动画前位置，再加上动画基类，为了过去的页面改变不出现动画效果。
+			if(oldpage.length) {
+				var anis = oldpage.find('.jmslip-ani');
+				anis.toggleClass('jmslip-ani', false);
+				anis.toggleClass('jmslip-ani-normal', false);
+				setTimeout(function(){
+					anis.toggleClass('jmslip-ani', true);
+				},20);
+			}
+			
+			setTimeout(function(){
+				var fs = page.find('.jmslip-flash');
+				for(var i=0;i<fs.length;i++) {
+					var cn = 'jmslip-flash'+((i % 3)+1);
+					$(fs[i]).toggleClass(cn, true);
+				}
+				if(oldpage.length) {
+					fs = oldpage.find('.jmslip-flash');
+					for(var i=0;i<fs.length;i++) {
+						var cn = 'jmslip-flash'+((i % 3)+1);
+						$(fs[i]).toggleClass(cn, false);
+					}
+				}			
+			},500);
 		} ,//翻页结束回调
 		onTouchStart: function(evt){
 			console.log(evt);

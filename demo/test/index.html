@@ -11,33 +11,25 @@
 <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1, user-scalable=no"/>
 
 </head>
-<body style="margin:0; height: 10024px;">
-<div style="position:absolute;top:0;left:0;width:20px;height:20px;background-color:red;-webkit-transition:-webkit-transform 0.5s ease 0s;-webkit-transform:
-translate3d(10px,80px,0px);"><div>
-
+<body style="margin:0;position:relative;overflow-x:hidden;">
+<div id="div1" style="width:100%;height:1024px;background:red;transition:transform 1s ease-in 0s;"><button onclick="javascript:go();">go</button></div>
+<div id="div2" style="width:100%;height:600px;position:absolute;background:green;z-index:1;right:-100%;top:0;transition:transform 1s ease-in 0s;transform:translate3d(0,0,0)"></div>
 </body>
 <script>
-/**
- * 绑定事件到html对象
- *
- * @method bind
- * @param {element} html元素对象
- * @param {string} name 事件名称
- * @param {function} fun 事件委托
- */
-function bind(target,name,fun) {
-  if(target.addEventListener) {
-        target.addEventListener(name,fun, false);
-        return true;
-    }
-    else if(target.attachEvent) {
-        return target.attachEvent("on"+name,fun);
-    }
-    return false;
+
+function go(){
+	document.getElementById('div1').style['transform'] = "translate3d(-100%,0,0)";
+	document.getElementById('div2').style['transform'] = "translate3d(-100%,0,0)";
+
+	setTimeout(function(){
+		document.getElementById('div1').style.display = 'none';
+		document.getElementById('div2').style.position = '';
+		document.getElementById('div2').style.zIndex = '';
+		document.getElementById('div2').style.right = '';
+		document.getElementById('div2').style.top = '';
+		document.getElementById('div2').style.transition = '';
+		document.getElementById('div2').style.transform = '';
+	},1000);
 }
-//DOMMouseScroll
-bind(document, 'mousewheel', function(e){
-  console.log(e.wheelDelta);
-});
 </script>
 </html>
