@@ -1,5 +1,6 @@
 /**
  * 前端滑动组件，主要用于移动端
+ * https://github.com/jiamao/jmSlip
  * 支持一些特殊动画效果
  * 参数说明：
  * mode： page=翻页效果，scroll=跟随滑动效果，类似于滚动条效果
@@ -33,12 +34,17 @@
 		option = option || {};
 		option.duration = option.duration || 500;
 		option.durations = option.duration / 1000;
+		if(typeof option.minOffset == 'string'){
+			minOffset = Number(option.minOffset);
+		}
 		//滑动项补充大小差异
 		option.itemOffWidth = option.itemOffWidth || 0;
 		option.itemOffHeight = option.itemOffHeight || 0;
 		option.zIndex = option.zIndex || 10000;
 
-		mode = mode || option.mode || 'page';		
+		mode = mode || option.mode || 'page';	
+		minOffset = option.minOffset || minOffset;
+			
 		if(typeof el == 'string') {
 			el = document.getElementById(el);
 		}
@@ -79,7 +85,7 @@
 				break;
 			}
 		}
-		css(el, 'overflow', 'hidden');
+		//css(el, 'overflow', 'hidden');
 		this.reset();		
 		this.bindEvent();//初始化手指滑动事件		
 		this.auto();
@@ -849,7 +855,7 @@
 					/*var time = evt.timeStamp - evt.startTime;
 					var s = offx / time * 100;
 					if(s < -maxoff) s = -maxoff;*/
-					this.offset(xdirection=='left'?-minOffset:minOffset, false);
+					minOffset && this.offset(xdirection=='left'?-minOffset:minOffset, false);
 				}
 			}
 		}
@@ -861,7 +867,7 @@
 					this.move(false , -maxoff);
 				}
 				else {
-					this.offset(false, ydirection=='up'?-minOffset:minOffset);
+					minOffset && this.offset(false, ydirection=='up'?-minOffset:minOffset);
 				}
 			}
 		}
