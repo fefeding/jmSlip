@@ -170,7 +170,11 @@
 <script>
 //itemOffWidth  可指定每项比自身宽度多多少像素，一般因为项加了margin,导致每项宽度和小于它应该有的宽度
 //itemOffHeight 是指的高度，同上
-var slip1 = new jmSlip('banner1','scroll',{direction: 'x', itemOffWidth: 1});
+var slip1 = new jmSlip('banner1','scroll',{
+	direction: 'x', 
+	itemOffWidth: 1,
+	minOffset: 0 //如果设为0表示没有惯性
+});
 var slip2 = new jmSlip('banner2','scroll',{direction: 'y', itemOffHeight: 1});
 $(window).resize(function(){
 	slip1.reset();
