@@ -12,22 +12,24 @@
 <script src="http://mat1.gtimg.com/www/mobi/js/zepto.min.js"></script>
 <script src="../../src/jmSlip.js"></script>
 <style>
-#banner {
+.banner {
 	width: 100%;
 	margin-top: 20px;
+	overflow:visible;
 }
-#banner > ul {
+.banner > ul {
 	list-style: none;
 	margin: 0;
 	padding: 0;
-	overflow: hidden;
+	overflow: visible;
 	height: 158px;
+	display:block;
 }
-#banner > ul > li {
+.banner > ul > li {
 	float: left;
 	padding-top: inherit;
 }
-#banner > ul > li > a {
+.banner > ul > li > a {
 	display: block;
 	padding-top: 38%;
 	background-position: center;
@@ -37,7 +39,7 @@
 </style>
 </head>
 <body style="margin:0;">
-<section id="banner">
+<section class="banner js-banner1">
 	<ul>
 		<li>
 			<a href="#" style="background-image:url(http://gqq.gtimg.com/zhuanlan/sBannerPic_20141107150521.jpg);" ></a>
@@ -53,31 +55,57 @@
 		</li>-->
 	</ul>
 </section>
+
+<section class="banner js-banner2" style="width:80%;margin:auto;">
+	<ul>
+		<li>
+			<a href="#" style="background-image:url(http://gqq.gtimg.com/zhuanlan/sBannerPic_20141107150521.jpg);width: 90%;margin:auto;" ></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://gqq.gtimg.com/zhuanlan/sBannerPic_20141107145405.jpg);width: 90%;margin:auto;"></a>
+		</li>
+		<li>
+			<a href="#"  style="background-image:url(http://gqq.gtimg.com/zhuanlan/sBannerPic_20141031200630.jpg);width: 90%;margin:auto;"></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://gqq.gtimg.com/zhuanlan/sBannerPic_20141107145440.jpg);width: 90%;margin:auto;"></a>
+		</li>
+	</ul>
+</section>
+
 <script>
-var slip = new jmSlip('banner','page',{
-	changeTime: 1000, 
-	direction: 'x',
-	loop: true,//循环切换
-	mousewheel:true,//支持滚轮
-	onPageStart: function(page) {
-		console.log(page);
-	}, //翻页开始前回调，如果返回false则翻页中止
-	onPageEnd: function(oldpage, newpage){
-		console.log(oldpage);
-		console.log(newpage);
-	} ,//翻页结束回调
-	onTouchStart: function(evt){
-		console.log(evt);
-	}, //滑动开始，返回false中止滑动
-	onTouchMove: function(evt, offset){
-		evt.preventDefault();
-		console.log(evt);
-		console.log(offset);//相对于start的位移
-	}, //滑动中，返回false中止
-	onTouchEnd: function(evt){
-		console.log(evt);
-	} //滑动结束，返回false中止
-});
+	var banner1 = $('.js-banner1');
+	var slip = new jmSlip(banner1,'page',{
+		//changeTime: 1000, 
+		direction: 'x',
+		loop: true,//循环切换
+		mousewheel:true,//支持滚轮
+		onPageStart: function(page) {
+			console.log(page);
+		}, //翻页开始前回调，如果返回false则翻页中止
+		onPageEnd: function(oldpage, newpage){
+			console.log(oldpage);
+			console.log(newpage);
+		} ,//翻页结束回调
+		onTouchStart: function(evt){
+			console.log(evt);
+		}, //滑动开始，返回false中止滑动
+		onTouchMove: function(evt, offset){
+			evt.preventDefault();
+			console.log(evt);
+			console.log(offset);//相对于start的位移
+		}, //滑动中，返回false中止
+		onTouchEnd: function(evt){
+			console.log(evt);
+		} //滑动结束，返回false中止
+	});
+
+	var banner2 = $('.js-banner2');
+	var slip2 = new jmSlip(banner2,'page',{
+		//changeTime: 1000, 
+		direction: 'x',
+		repeat: true //这里用平铺，表示不用上面那种移动不显示的页。一般用在需要显示部分边页的情况
+	});
 
 $(window).resize(function(){
 
