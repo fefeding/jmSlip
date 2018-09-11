@@ -417,8 +417,10 @@
 	 * 重置和初始化滑动对象
 	 *
 	 */
-	pageSlip.prototype.reset = function() {		
-
+	pageSlip.prototype.reset = function() {
+        if(this.option.repeat) {
+            this.children = [];
+        }
 		if(this.instance.option.direction == 'x') {
 			this.pageWidth = this.instance.option.width || this.instance.container.offsetWidth;
 			//如果是默认的翻页方式，则内框的宽度为子元素总宽度和
@@ -486,14 +488,14 @@
 	 * 手指滑动移动事件
 	 *
 	 */
-	pageSlip.prototype.move = function(offx, offy) {	
-		//普通翻页动画，就是位移	
+	pageSlip.prototype.move = function(offx, offy) {
+		//普通翻页动画，就是位移
 		var prepage = this.children[this.page - 1];
 		var curpage = this.children[this.page];
 		var nextpage = this.children[parseInt(this.page||0,10) + 1];
 
 		//当前页没加入则直接加入
-		if(curpage && !curpage.parentNode) this.instance.containerInner.appendChild(curpage);
+		if(curpage && !curpage.parentNode && !this.option.repeat) this.instance.containerInner.appendChild(curpage);
 
 		//如果设置了循环，则最后一面后再回到第一页
 		if(this.option.loop) {
