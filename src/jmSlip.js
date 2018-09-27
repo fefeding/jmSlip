@@ -30,11 +30,11 @@
 		if(typeof mode == 'object') {
 			option = mode;
 			mode = option.mode || 'page';
-		}		
+		}
 		option = option || {};
 		option.duration = option.duration || 500;
 		option.durations = option.duration / 1000;
-		if(typeof option.minOffset == 'number'){
+		if(typeof option.minOffset == 'string'){
 			minOffset = Number(option.minOffset);
 		}
 		//滑动项补充大小差异
@@ -85,7 +85,7 @@
 				break;
 			}
 		}
-		css(el, 'overflow', 'hidden');
+		//css(el, 'overflow', 'hidden');
 		this.reset();		
 		this.bindEvent();//初始化手指滑动事件		
 		this.auto();
@@ -387,16 +387,29 @@
 				if(!exists) {
 					this.children.push(ch);
 					css(ch, {'position': 'absolute', 'width':'100%', 'height':'100%', 'top':0,'left':0});
-					if(this.instance.option.direction == 'x') {
-						var offx = i < this.page?-this.pageWidth:i>this.page?this.pageWidth:0;
-						css(ch,'transform', 'translate3d(' + offx + 'px,0px,0px)', CSSMAP);
-					}
-					else {
-						var offy = i < this.page?-this.pageHeight:i>this.page?this.pageHeight:0;
-						css(ch,'transform', 'translate3d(0px,'+offy+'px,0px)', CSSMAP);
-					}
-				}
-			}			
+                }
+                //初始化位置，如果是平铺的，则按顺序位移，否则只保留三页即可
+                if(this.instance.option.direction == 'x') {
+                    var offx = 0;
+                    if(this.option.repeat) {
+                        offx = (i - this.page) * this.pageWidth;
+                    }
+                    else {
+                        offx = i < this.page?-this.pageWidth:i>this.page?this.pageWidth:0;
+                    }
+                    css(ch,'transform', 'translate3d(' + offx + 'px,0px,0px)', CSSMAP);
+                }
+                else {
+                    var offy = 0;
+                    if(this.option.repeat) {
+                        offx = (i - this.page) * this.pageHeight;
+                    }
+                    else {
+                        offy = i < this.page?-this.pageHeight:i>this.page?this.pageHeight:0;
+                    }
+                    css(ch,'transform', 'translate3d(0px,'+offy+'px,0px)', CSSMAP);
+                }
+			}
 		}
 	}
 
@@ -404,8 +417,10 @@
 	 * 重置和初始化滑动对象
 	 *
 	 */
-	pageSlip.prototype.reset = function() {		
-
+	pageSlip.prototype.reset = function() {
+        if(this.option.repeat) {
+            this.children = [];
+        }
 		if(this.instance.option.direction == 'x') {
 			this.pageWidth = this.instance.option.width || this.instance.container.offsetWidth;
 			//如果是默认的翻页方式，则内框的宽度为子元素总宽度和
@@ -473,14 +488,14 @@
 	 * 手指滑动移动事件
 	 *
 	 */
-	pageSlip.prototype.move = function(offx, offy) {	
-		//普通翻页动画，就是位移	
+	pageSlip.prototype.move = function(offx, offy) {
+		//普通翻页动画，就是位移
 		var prepage = this.children[this.page - 1];
 		var curpage = this.children[this.page];
 		var nextpage = this.children[parseInt(this.page||0,10) + 1];
 
 		//当前页没加入则直接加入
-		if(curpage && !curpage.parentNode) this.instance.containerInner.appendChild(curpage);
+		if(curpage && !curpage.parentNode && !this.option.repeat) this.instance.containerInner.appendChild(curpage);
 
 		//如果设置了循环，则最后一面后再回到第一页
 		if(this.option.loop) {
@@ -497,24 +512,32 @@
 			if(this.option.locked && !nextpage && offx < 0) {
 				//如果锁定，则不能滑出当前区域
 				return;
-			}			
-					
-			if(prepage) {
-				css(prepage,'transform', 'translate3d(' + (offx - this.pageWidth) + 'px,0px,0px)', CSSMAP);				
-			}			 
-			
-			if(nextpage) {
-				css(nextpage,'transform', 'translate3d(' + (this.pageWidth + offx) + 'px,0px,0px)', CSSMAP);
 			}
 
-			var tranX = 'translate3d(' + offx + 'px,0px,0px)';	
-			if(curpage) {
-				css(curpage,'transform', tranX, CSSMAP);
-				curpage.style.zIndex = this.option.zIndex;
-			}
+            if(this.option.repeat) {
+                for(var i=0;i<this.children.length;i++) {
+                    var ox = (i - this.page) * this.pageWidth + offx;
+                    css(this.children[i],'transform', 'translate3d(' + ox + 'px,0px,0px)', CSSMAP);
+                }
+            }
+            else {
+                if(prepage) {
+                    css(prepage,'transform', 'translate3d(' + (offx - this.pageWidth) + 'px,0px,0px)', CSSMAP);
+                }
+
+                if(nextpage) {
+                    css(nextpage,'transform', 'translate3d(' + (this.pageWidth + offx) + 'px,0px,0px)', CSSMAP);
+                }
+
+                var tranX = 'translate3d(' + offx + 'px,0px,0px)';
+                if(curpage) {
+                    css(curpage,'transform', tranX, CSSMAP);
+                    curpage.style.zIndex = this.option.zIndex;
+                }
+            }
 			this.offsetX = offx;
 		}
-		if(offy !== false) {	
+		if(offy !== false) {
 			if(this.option.locked && !prepage && offy > 0) {
 				//如果锁定，则不能滑出当前区域
 				return;
@@ -524,20 +547,28 @@
 				return;
 			}
 			if(!prepage && this.option.locked) return;
-			
-			if(prepage) {
-				css(prepage,'transform', 'translate3d(0px,' + (offy - this.pageHeight) + 'px,0px)', CSSMAP);
-			}
-			
-			if(nextpage) {
-				css(nextpage,'transform', 'translate3d(0px,' + (this.pageHeight + offy) + 'px,0px)', CSSMAP);
-			}
 
-			var tranY = 'translate3d(0px,' + offy + 'px,0px)';	
-			if(curpage) {
-				css(curpage,'transform', tranY, CSSMAP);
-				curpage.style.zIndex = this.option.zIndex;
-			}
+            if(this.option.repeat) {
+                for(var i=0;i<this.children.length;i++) {
+                    var oy = (i - this.page) * this.pageHeight + offy;
+                    css(this.children[i],'transform', 'translate3d(0px,' + oy + 'px,0px)', CSSMAP);
+                }
+            }
+            else {
+                if(prepage) {
+                    css(prepage,'transform', 'translate3d(0px,' + (offy - this.pageHeight) + 'px,0px)', CSSMAP);
+                }
+
+                if(nextpage) {
+                    css(nextpage,'transform', 'translate3d(0px,' + (this.pageHeight + offy) + 'px,0px)', CSSMAP);
+                }
+
+                var tranY = 'translate3d(0px,' + offy + 'px,0px)';
+                if(curpage) {
+                    css(curpage,'transform', tranY, CSSMAP);
+                    curpage.style.zIndex = this.option.zIndex;
+                }
+            }
 
 			this.offsetY = offy;
 		}
@@ -603,100 +634,101 @@
 			}
 		}
 
-		//开始翻页计算
-		var offx = false,offy = false;
-		if(this.instance.option.direction == 'x') {
-			offx = 0;//当前滑动距离
-		}
-		else {
-			offy = 0;//当前滑动距离
-		}
-		//只保留 三页
-		var curpage = this.children[page];
-		curpage && (curpage.style.zIndex = this.option.zIndex);
-		if(oldpage > page) {
-			//去掉后面的一页
-			var lastpage = this.children[oldpage + 1];
-			if(lastpage && curpage != lastpage && lastpage.parentNode) this.instance.containerInner.removeChild(lastpage);
-			//如果是从最后一页到第一页，则下一页为第二页,加入后面
-			else if(!lastpage && page == 0) {
-				var lastpage = this.children[page + 1];
-				if(lastpage) {
-					lastpage.style.zIndex = this.option.zIndex - 2;
-					!lastpage.parentNode && this.instance.containerInner.appendChild(lastpage);
-				}
-			}
-			//插入第一页
-			var firstpage = this.children[page - 1];
-			//如果有设置循环翻页，则第一页后跳到最后一页
-			if(!firstpage && page === 0 && this.option.loop) {
-				firstpage = this.children[len - 1];			
-			}
-			if(firstpage) {
-				//如果原页为最后一个，且跳到第二个页，这时就会导致第一个页面从最后跳到第一个，把它置底，省得会挡住动画
-				if(oldpage == len-1 || page == 1) firstpage.style.zIndex = this.option.zIndex - 2;
-				if(this.instance.option.direction == 'x') {					
-					css(firstpage,'transform', 'translate3d(' + (0 - this.pageWidth) + 'px,0px,0px)', CSSMAP);
-				}
-				else css(firstpage,'transform', 'translate3d(0px,' + (0 - this.pageHeight) + 'px,0px)', CSSMAP);
-				if(!firstpage.parentNode) {
-					 firstpage.style.zIndex = this.option.zIndex - 2;
-					if(curpage.parentNode) this.instance.containerInner.insertBefore(firstpage, curpage);
-					else this.instance.containerInner.appendChild(firstpage);
-				}
-			}
-		}
-		else if(oldpage < page) {
-			//去掉第一页
-			var firstpage = this.children[oldpage - 1];
-			if(firstpage && curpage != firstpage && firstpage.parentNode) this.instance.containerInner.removeChild(firstpage);
+        this.page = this.instance.page = page;
 
-			if(oldpage === 0 && page === len-1 && !firstpage) {
-				firstpage = this.children[page - 1];
-				if(firstpage) {
-					firstpage.style.zIndex = this.option.zIndex - 2;
-					if(!firstpage.parentNode) {
-						if(curpage.parentNode) this.instance.containerInner.insertBefore(firstpage, curpage);
-						else this.instance.containerInner.appendChild(firstpage);
-					}
-				}
-			}
+        //只保留 三页
+        if(!this.option.repeat) {
+            var curpage = this.children[page];
+            curpage && (curpage.style.zIndex = this.option.zIndex);
+            if(oldpage > page) {
+                if(!this.option.repeat) {
+                    //去掉后面的一页
+                    var lastpage = this.children[oldpage + 1];
+                    if(lastpage && curpage != lastpage && lastpage.parentNode) this.instance.containerInner.removeChild(lastpage);
+                    //如果是从最后一页到第一页，则下一页为第二页,加入后面
+                    else if(!lastpage && page == 0) {
+                        var lastpage = this.children[page + 1];
+                        if(lastpage) {
+                            lastpage.style.zIndex = this.option.zIndex - 2;
+                            !lastpage.parentNode && this.instance.containerInner.appendChild(lastpage);
+                        }
+                    }
+                }
+                //插入第一页
+                var firstpage = this.children[page - 1];
+                //如果有设置循环翻页，则第一页后跳到最后一页
+                if(!firstpage && page === 0 && this.option.loop) {
+                    firstpage = this.children[len - 1];
+                }
+                if(firstpage) {
+                    //如果原页为最后一个，且跳到第二个页，这时就会导致第一个页面从最后跳到第一个，把它置底，省得会挡住动画
+                    if(oldpage == len-1 || page == 1) firstpage.style.zIndex = this.option.zIndex - 2;
+                    if(this.instance.option.direction == 'x') {
+                        css(firstpage,'transform', 'translate3d(' + (0 - this.pageWidth) + 'px,0px,0px)', CSSMAP);
+                    }
+                    else css(firstpage,'transform', 'translate3d(0px,' + (0 - this.pageHeight) + 'px,0px)', CSSMAP);
+                    if(!this.option.repeat && !firstpage.parentNode) {
+                        firstpage.style.zIndex = this.option.zIndex - 2;
+                        if(curpage.parentNode) this.instance.containerInner.insertBefore(firstpage, curpage);
+                        else this.instance.containerInner.appendChild(firstpage);
+                    }
+                }
+            }
+            else if(oldpage < page) {
+                if(!this.option.repeat) {
+                    //去掉第一页
+                    var firstpage = this.children[oldpage - 1];
+                    if(firstpage && curpage != firstpage && firstpage.parentNode) this.instance.containerInner.removeChild(firstpage);
 
-			var lastpage = this.children[page + 1];
-			//如果有设置循环翻页，则最后一页后面跟着的是第一页
-			if(!lastpage && page === len-1 && this.option.loop) {
-				lastpage = this.children[0];
-			}
-			if(lastpage) {
-				//如果原页为第一个，且跳到最后第二页，这时就会导致最后一页从第一个跳到最后，把它置底，省得会挡住动画
-				if(oldpage == 0 || page == len-2) lastpage.style.zIndex = this.option.zIndex - 2;
-				if(this.instance.option.direction == 'x') css(lastpage,'transform', 'translate3d(' + this.pageWidth + 'px,0px,0px)', CSSMAP);
-				else css(lastpage,'transform', 'translate3d(0px,' + this.pageHeight + 'px,0px)', CSSMAP);
-				if(!lastpage.parentNode) {
-					lastpage.style.zIndex = this.option.zIndex - 2;
-					this.instance.containerInner.appendChild(lastpage);
-				}
-			}
-		}
-		//如果不变，则只保留三页
-		else if(this.instance.containerInner.children.length > 3) {
-			var chlen = this.instance.containerInner.children.length;
-			for(var i=chlen-1;i>=0;i--) {
-				var ch = this.instance.containerInner.children[i];
-				if(i < page - 1 || i > page + 1) {
-					if(page == 0 && this.option.loop && i == chlen-1) continue;
-					else if(page == chlen-1 && this.option.loop && i == 0) continue;
-					if(ch.parentNode  && curpage != ch) this.instance.containerInner.removeChild(ch);
-				}
-			}
-		}	
+                    if(oldpage === 0 && page === len-1 && !firstpage) {
+                        firstpage = this.children[page - 1];
+                        if(firstpage) {
+                            firstpage.style.zIndex = this.option.zIndex - 2;
+                            if(!firstpage.parentNode) {
+                                if(curpage.parentNode) this.instance.containerInner.insertBefore(firstpage, curpage);
+                                else this.instance.containerInner.appendChild(firstpage);
+                            }
+                        }
+                    }
+                }
 
-		this.page = this.instance.page = page;
+                var lastpage = this.children[page + 1];
+                //如果有设置循环翻页，则最后一页后面跟着的是第一页
+                if(!lastpage && page === len-1 && this.option.loop) {
+                    lastpage = this.children[0];
+                }
+                if(lastpage) {
+                    //如果原页为第一个，且跳到最后第二页，这时就会导致最后一页从第一个跳到最后，把它置底，省得会挡住动画
+                    if(oldpage == 0 || page == len-2) lastpage.style.zIndex = this.option.zIndex - 2;
+                    if(this.instance.option.direction == 'x') css(lastpage,'transform', 'translate3d(' + this.pageWidth + 'px,0px,0px)', CSSMAP);
+                    else css(lastpage,'transform', 'translate3d(0px,' + this.pageHeight + 'px,0px)', CSSMAP);
+                    if(!this.option.repeat && !lastpage.parentNode) {
+                        lastpage.style.zIndex = this.option.zIndex - 2;
+                        this.instance.containerInner.appendChild(lastpage);
+                    }
+                }
+            }
+            //如果不变，则只保留三页
+            else if(!this.option.repeat && this.instance.containerInner.children.length > 3) {
+                var chlen = this.instance.containerInner.children.length;
+                for(var i=chlen-1;i>=0;i--) {
+                    var ch = this.instance.containerInner.children[i];
+                    if(i < page - 1 || i > page + 1) {
+                        if(page == 0 && this.option.loop && i == chlen-1) continue;
+                        else if(page == chlen-1 && this.option.loop && i == 0) continue;
+                        if(ch.parentNode  && curpage != ch) this.instance.containerInner.removeChild(ch);
+                    }
+                }
+            }
+        }
+        else {
+            this.initChildren();
+        }
 		this.move(0, 0);
 
 		//翻页后先调用自定义回调，以备做一些其它自定义处理
 		if(this.option && this.option.onPageEnd && typeof this.option.onPageEnd == 'function') {
-			var pageindex = attr(curpage, 'data-page') || page;
+			var pageindex = curpage?(attr(curpage, 'data-page') || page):page;
 			this.option.onPageEnd.call(this, oldpage, pageindex, actionType);
 		}
 		//执行动画结束后效果处理
