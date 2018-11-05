@@ -107,7 +107,7 @@
 		var self = this;
 		this.touched = false;
 		var startPosition = [],prePosition = [],curposition = [];
-		var ydirection = '',xdirection='';
+		var ydirection = '',xdirection=''; 
 		var isMoved = false;//是否有移动过
 		var startTime = null;//记录滑动开始时间
 		//触控开始事件
@@ -154,7 +154,7 @@
 					y: curposition[0].y
 				};
 			}
-
+			
 			//如果有停止动画的函数，则直接调用，否则调用默认的
 			if(self.slipObj && self.slipObj.setTransition) {
 				self.slipObj.setTransition(false);
@@ -165,7 +165,7 @@
 			//evt.stopPropagation && evt.stopPropagation();
 			//evt.preventDefault && evt.preventDefault();//阻止默认响应
 		}
-
+		
 		//移动事件
 		function onTouchMove(evt) {
 			evt = evt || win.event;
@@ -173,7 +173,7 @@
 				var offsetPos = [];
 
 				//先把上回的点赋值给prePosition
-				for(var i=0;i<prePosition.length;i++) {
+				for(var i=0;i<prePosition.length;i++) {					
 					//滑动当前移动距离，让页面跟随手指移动
 					if(prePosition[i] && curposition[i]) {
 						prePosition[i].x = curposition[i].x;
@@ -207,7 +207,7 @@
 							}
 							else {
 								offsetPos[i].xDirection = xdirection = 'left';
-							}
+							}	
 						}
 					}
 				}
@@ -235,10 +235,10 @@
 						}
 						else {
 							offsetPos[0].xDirection = xdirection = 'left';
-						}
+						}	
 					}
-				}
-
+				}				
+				
 				evt.prePositions = prePosition;//上一点集合
 				evt.positions = curposition;//挂上所有点
 				evt.offsetPos = offsetPos;//滑动参数，计算
@@ -253,25 +253,25 @@
 					if(stop === false) {
 						off = false;
 					}
-				}
+				}	
 
 				if(off && offsetPos[0]) {
 					isMoved = true;
-					off = self.slipObj.offset(offsetPos[0].x, offsetPos[0].y, evt);
+					off = self.slipObj.offset(offsetPos[0].x, offsetPos[0].y, evt);	
 				}
 				//如果返回中止，则中止此次移动事件
 				if(off === false) {
 					onTouchEnd.call(this, evt);
-				}
+				}	
 			}
 		}
 
 		function onTouchEnd(evt) {
 			evt = evt || win.event;
 			//console.log(evt);
-			if(self.touched) {
-				var offsetPos = [];
-
+			if(self.touched) {				
+				var offsetPos = [];				
+				
 				if(evt.touches && evt.touches.length) {
 					for(var i=0;i<evt.touches.length;i++) {
 						//滑动当前移动距离，让页面跟随手指移动
@@ -337,7 +337,7 @@
 				self.auto();
 				//evt.stopPropagation && evt.stopPropagation();
 				//evt.preventDefault && evt.preventDefault();//阻止默认响应
-			}
+			}			
 		}
 
 		//滚轮事件
@@ -346,10 +346,10 @@
 		function onMousewheel(e){
 			//清除上次的翻页事件，用户还在滚动中
 			if(wheelInterval) clearTimeout(wheelInterval);
-			e = e || win.event;
-			var off = e.wheelDelta;
-			wheelOff += off;
-
+			e = e || win.event;	
+			var off = e.wheelDelta;	
+			wheelOff += off;		
+			
 			self.slipObj.offset(0, off, e);
 			wheelInterval = setTimeout(function(){
 				self.transition(true, null, 'linear');//动画
@@ -1520,13 +1520,13 @@
 		//滚动事件回调
 		if(this.instance.option.onScrollEnd) this.instance.option.onScrollEnd.call(this, tx, ty, xdirection, ydirection, evt, target);
 	};
-
+	
 	/**
 	 * 缩放对象
 	 *
 	 */
 	function scaleSlip(instance) {
-		this.instance = instance;
+		this.instance = instance;	
 
 		this.option = instance.option;
 		instance.containerInner = this.option.target || instance.containerInner;
@@ -1591,8 +1591,13 @@
         }
         //如果支持滑动。则单指表示
         else if(this.option.supportTranslate && evt.offsetPos && evt.offsetPos.length == 1) {
-            if(offx === false) offx = this.offsetX;
-            if(offy === false) offy = this.offsetY;
+			if(offx === false) offx = this.offsetX;
+			//如果被缩放，移动的距离要处理缩放比例，不然会漂
+			else offx /= this.scaleX;
+
+			if(offy === false) offy = this.offsetY;	
+			//如果被缩放，移动的距离要处理缩放比例，不然会漂
+			else offy /= this.scaleY;
 
             this.set(0, this.offsetX + offx, this.offsetY + offy);
 
@@ -1615,6 +1620,10 @@
 		var tranX = 'scale3d(' + v + ',' + v + ',1) translate3d(' + offx + 'px,'+ offy +'px,0px)';
 		css(this.instance.containerInner,'transform', tranX, CSSMAP);
 		this.scaleX = this.scaleY = v;
+	}
+	//重写动画设置，这里不需要，直接空
+	scaleSlip.prototype.setTransition = function(b){
+
 	}
 
 	//设置对象样式
