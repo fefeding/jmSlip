@@ -1591,6 +1591,9 @@
         }
         //如果支持滑动。则单指表示
         else if(this.option.supportTranslate && evt.offsetPos && evt.offsetPos.length == 1) {
+			
+			if(offx || offy) evt && evt.preventDefault && evt.preventDefault();//阻止默认响应
+
 			if(offx === false) offx = this.offsetX;
 			//如果被缩放，移动的距离要处理缩放比例，不然会漂
 			else offx /= this.scaleX;
@@ -1599,9 +1602,7 @@
 			//如果被缩放，移动的距离要处理缩放比例，不然会漂
 			else offy /= this.scaleY;
 
-            this.set(0, this.offsetX + offx, this.offsetY + offy);
-
-            evt && evt.preventDefault && evt.preventDefault();//阻止默认响应
+            this.set(0, this.offsetX + offx, this.offsetY + offy);            
         }
 	}
 
@@ -1622,7 +1623,7 @@
         this.offsetX = offx;
         this.offsetY = offy;
 
-		var tranX = 'scale3d(' + v + ',' + v + ',1) translate3d(' + offx + 'px,'+ offy +'px,0px)';
+		var tranX = 'scale(' + v + ',' + v + ') translate3d(' + offx + 'px,'+ offy +'px,0px)';
 		css(this.instance.containerInner,'transform', tranX, CSSMAP);
 		this.scaleX = this.scaleY = v;
 	}
