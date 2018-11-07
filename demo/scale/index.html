@@ -1,0 +1,77 @@
+<!doctype html>
+<html style="height:100%;margin:0;">
+<head>
+<meta charset="utf-8">
+<title>scale-jmslip</title>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<meta name="format-detection" content="telephone=no" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1, user-scalable=no"/>
+<script src="http://mat1.gtimg.com/www/mobi/js/zepto.min.js"></script>
+<script src="../../src/jmSlip.js"></script>
+<style>
+    .container{
+        width: 100%;
+        height: 400px;
+        overflow: hidden;
+        background-color: #000;
+        text-align: center;
+    }
+    .container img{
+        width: 200px;
+        margin: 20px auto;
+        border: 1px solid #ccc;
+    }
+</style>
+</head>
+<body>
+    <div>
+        <div class="container js-container">
+            <img src="http://gqq.gtimg.com/zhuanlan/sBannerPic_20141107150521.jpg" />
+        </div>
+    <a class="js-scale2" href="javascript:;">reset</a>
+    </div>
+    
+<script>
+$(function(){	
+  var container = $('.js-container');
+	var slip = new jmSlip(container, 'scale', {
+        target: container.find('img')[0],
+        supportTranslate: true,//是否支持移动
+        maxScale: 4, //最大放大4倍
+        minScale: 0.1, //最小缩小到10%
+        onTouchMove: function(e){
+            //if(e.offsetPos.length == 2)container.append(JSON.stringify(e.offsetPos));
+        },
+        onScaleStart: function(per, e) {
+            container.append('scale:' + per + '<br />');
+        }
+    });
+    
+    var evt = {
+            offsetPos:[
+                {},
+                {}
+            ],
+            prePositions:[
+                {x:10,y:10},
+                {x:200,y:160}
+            ],
+            positions:[
+                {x:20,y:20},
+                {x:100,y:100}
+            ]
+        };
+    $('.js-scale1').click(function(){
+        slip.slipObj.offset(0,0,evt);
+    });
+
+    $('.js-scale2').click(function(){
+        slip.reset();
+    });
+});	
+</script>
+</body>
+</html>

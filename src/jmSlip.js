@@ -84,6 +84,10 @@
 				this.slipObj = new dragSlip(this);
 				break;
 			}
+			case 'scale': {
+				this.slipObj = new scaleSlip(this);
+				break;
+			}
 		}
 		//css(el, 'overflow', 'hidden');
 		this.reset();		
@@ -102,13 +106,18 @@
 	slip.prototype.bindEvent = function(b) {
 		var self = this;
 		this.touched = false;
-		var startPosition = {x:0,y:0},prePosition = {x:0,y:0},curposition = {x:0,y:0};
+		var startPosition = [],prePosition = [],curposition = [];
 		var ydirection = '',xdirection=''; 
 		var isMoved = false;//是否有移动过
 		var startTime = null;//记录滑动开始时间
 		//触控开始事件
 		function onTouchStart(evt) {
-			evt = evt || win.event;		
+			evt = evt || win.event;
+
+			startPosition = [];
+			prePosition = [];
+			curposition = [];
+
 			if(self.option && self.option.onTouchStart && typeof self.option.onTouchStart == 'function') {
 				var stop = self.option.onTouchStart.call(self.slipObj, evt);
 				//如果回调返回false , 则中止当前滑动
@@ -123,11 +132,29 @@
 			isMoved = false;
 
 			startTime = evt.timeStamp;
-			var obj = evt.touches && evt.touches.length?evt.touches[0]:evt;
-			curposition.x=prePosition.x = startPosition.x = obj.clientX || obj.pageX;
-			curposition.y=prePosition.y = startPosition.y = obj.clientY || obj.pageY;
-			//console.log(touchStart);
-			//console.log(startPosition);
+			if(evt.touches && evt.touches.length) {
+				for(var i=0;i<evt.touches.length;i++) {
+					curposition[i] = prePosition[i] = {
+						x: evt.touches[i].clientX || evt.touches[i].pageX,
+						y: evt.touches[i].clientY || evt.touches[i].pageY
+					};
+					startPosition[i] = {
+						x: curposition[i].x,
+						y: curposition[i].y
+					};
+				}
+			}
+			else {
+				curposition[0] = prePosition[0] = {
+					x: evt.clientX || evt.pageX,
+					y: evt.clientY || evt.pageY
+				};
+				startPosition[0] = {
+					x: curposition[0].x,
+					y: curposition[0].y
+				};
+			}
+			
 			//如果有停止动画的函数，则直接调用，否则调用默认的
 			if(self.slipObj && self.slipObj.setTransition) {
 				self.slipObj.setTransition(false);
@@ -143,40 +170,94 @@
 		function onTouchMove(evt) {
 			evt = evt || win.event;
 			if(self.touched) {
-				var obj = evt.touches && evt.touches.length?evt.touches[0]:evt;
-				curposition.x = obj.clientX || obj.pageX;
-				curposition.y = obj.clientY || obj.pageY;
-				if(curposition.y > prePosition.y) {
-					ydirection = 'down';
+				var offsetPos = [];
+
+				//先把上回的点赋值给prePosition
+				for(var i=0;i<prePosition.length;i++) {					
+					//滑动当前移动距离，让页面跟随手指移动
+					if(prePosition[i] && curposition[i]) {
+						prePosition[i].x = curposition[i].x;
+						prePosition[i].y = curposition[i].y;
+					}
+				}
+
+				if(evt.touches && evt.touches.length) {
+					for(var i=0;i<evt.touches.length;i++) {
+						curposition[i] = {
+							x: evt.touches[i].clientX || evt.touches[i].pageX,
+							y: evt.touches[i].clientY || evt.touches[i].pageY
+						};
+						//滑动当前移动距离，让页面跟随手指移动
+						if(prePosition[i]) {
+							offsetPos[i] = {
+								x: curposition[i].x - prePosition[i].x,
+								y: curposition[i].y - prePosition[i].y,
+								absoluteX: curposition[i].x - startPosition[i].x,
+								absoluteY: curposition[i].y - startPosition[i].y
+							};
+
+							if(curposition[i] && curposition[i].y > prePosition[i].y) {
+								offsetPos[i].yDirection = ydirection = 'down';
+							}
+							else {
+								offsetPos[i].yDirection = ydirection = 'up';
+							}
+							if(curposition[i] && curposition[i].x > prePosition[i].x) {
+								offsetPos[i].xDirection = xdirection = 'right';
+							}
+							else {
+								offsetPos[i].xDirection = xdirection = 'left';
+							}	
+						}
+					}
 				}
 				else {
-					ydirection = 'up';
-				}
-				if(curposition.x > prePosition.x) {
-					xdirection = 'right';
-				}
-				else {
-					xdirection = 'left';
-				}
+					curposition[0] = {
+						x: evt.clientX || evt.pageX,
+						y: evt.clientY || evt.pageY
+					};
+					if(prePosition[0]) {
+						//滑动当前移动距离，让页面跟随手指移动
+						offsetPos[0] = {
+							x: curposition[0].x - prePosition[0].x,
+							y: curposition[0].y - prePosition[0].y,
+							absoluteX: curposition[0].x - startPosition[0].x,
+							absoluteY: curposition[0].y - startPosition[0].y
+						};
+						if(curposition[0] && curposition[0].y > prePosition[0].y) {
+							offsetPos[0].yDirection = ydirection = 'down';
+						}
+						else {
+							offsetPos[0].yDirection = ydirection = 'up';
+						}
+						if(curposition[0] && curposition[0].x > prePosition[0].x) {
+							offsetPos[0].xDirection = xdirection = 'right';
+						}
+						else {
+							offsetPos[0].xDirection = xdirection = 'left';
+						}	
+					}
+				}				
 				
-				//滑动当前移动距离，让页面跟随手指移动
-				var offy = curposition.y - prePosition.y;
-				var offx = curposition.x - prePosition.x;
-				prePosition.x = curposition.x;
-				prePosition.y = curposition.y;
+				evt.prePositions = prePosition;//上一点集合
+				evt.positions = curposition;//挂上所有点
+				evt.offsetPos = offsetPos;//滑动参数，计算
 
 				var off = true;
 				if(self.option && self.option.onTouchMove && typeof self.option.onTouchMove == 'function') {
-					var stop = self.option.onTouchMove.call(self.slipObj, evt, {offx:curposition.x - startPosition.x,offy:curposition.y - startPosition.y});
+					var stop = self.option.onTouchMove.call(self.slipObj, evt, {
+						offx:offsetPos[0]?offsetPos[0].absoluteX:0,
+						offy:offsetPos[0]?offsetPos[0].absoluteY:0
+					});
 					//如果回调返回false , 则中止当前滑动
 					if(stop === false) {
 						off = false;
 					}
 				}	
 
-				if(off) {
+				if(off && offsetPos[0]) {
 					isMoved = true;
-					off = self.slipObj.offset(offx, offy, evt);	
+					off = self.slipObj.offset(offsetPos[0].x, offsetPos[0].y, evt);	
 				}
 				//如果返回中止，则中止此次移动事件
 				if(off === false) {
@@ -189,18 +270,50 @@
 			evt = evt || win.event;
 			//console.log(evt);
 			if(self.touched) {				
-
-				//滑动当前移动距离，让页面跟随手指移动
-				var offx = curposition.x - startPosition.x;
-				var offy = curposition.y - startPosition.y;	
+				var offsetPos = [];				
 				
-				curposition.x = evt.clientX || evt.pageX;
-				curposition.y = evt.clientY || evt.pageY;
-				//console.log(touchEnd);
-				//console.log(startPosition);
+				if(evt.touches && evt.touches.length) {
+					for(var i=0;i<evt.touches.length;i++) {
+						//滑动当前移动距离，让页面跟随手指移动
+						if(prePosition[i]) {
+							offsetPos[i] = {
+								x: curposition[i].x - prePosition[i].x,
+								y: curposition[i].y - prePosition[i].y,
+								absoluteX: curposition[i].x - startPosition[i].x,
+								absoluteY: curposition[i].y - startPosition[i].y
+							};
+						}
+						curposition[i] = {
+							x: evt.touches[i].clientX || evt.touches[i].pageX,
+							y: evt.touches[i].clientY || evt.touches[i].pageY
+						};
+					}
+				}
+				else {
+					if(prePosition[0]) {
+						//滑动当前移动距离，让页面跟随手指移动
+						offsetPos[0] = {
+							x: curposition[0].x - prePosition[0].x,
+							y: curposition[0].y - prePosition[0].y,
+							absoluteX: curposition[0].x - startPosition[0].x,
+							absoluteY: curposition[0].y - startPosition[0].y
+						};
+						prePosition[0].x = curposition[0].x;
+						prePosition[0].y = curposition[0].y;
+					}
+					curposition[0] = {
+						x: evt.clientX || evt.pageX,
+						y: evt.clientY || evt.pageY
+					};
+				}
+
+				evt.offsetPos = offsetPos;//滑动参数，计算
 
 				if(self.option && self.option.onTouchEnd && typeof self.option.onTouchEnd == 'function') {
-					var stop = self.option.onTouchEnd.call(self.slipObj, evt, {offx: offx, offy: offy});
+					var stop = self.option.onTouchEnd.call(self.slipObj, evt, {
+						offx:offsetPos[0]?offsetPos[0].absoluteX:0,
+						offy:offsetPos[0]?offsetPos[0].absoluteY:0
+					});
 					//如果回调返回false , 则中止当前滑动
 					if(stop === false) {
 						return;
@@ -216,10 +329,10 @@
 					self.transition(true);//启用动画
 				}
 
-				evt.startTime = startTime;//记录滑动起始时间		
-				
-				if(isMoved) self.slipObj.end(offx, offy, xdirection, ydirection, evt);							
-				
+				evt.startTime = startTime;//记录滑动起始时间
+
+				if(isMoved && self.slipObj.end) self.slipObj.end(offsetPos[0].absoluteX, offsetPos[0].absoluteY, xdirection, ydirection, evt);
+
 				self.touched = false;
 				self.auto();
 				//evt.stopPropagation && evt.stopPropagation();
@@ -365,6 +478,9 @@
 
 	//初始化子页
 	pageSlip.prototype.initChildren = function() {
+        if(this.option.repeat) {
+            this.children = [];
+        }
 		if(this.instance && this.instance.containerInner) {
 			var lastIndex = 1;
 			for(var i=0;i<this.instance.containerInner.children.length;i++) {
@@ -418,9 +534,7 @@
 	 *
 	 */
 	pageSlip.prototype.reset = function() {
-        if(this.option.repeat) {
-            this.children = [];
-        }
+
 		if(this.instance.option.direction == 'x') {
 			this.pageWidth = this.instance.option.width || this.instance.container.offsetWidth;
 			//如果是默认的翻页方式，则内框的宽度为子元素总宽度和
@@ -1405,7 +1519,117 @@
 
 		//滚动事件回调
 		if(this.instance.option.onScrollEnd) this.instance.option.onScrollEnd.call(this, tx, ty, xdirection, ydirection, evt, target);
-	};	
+	};
+	
+	/**
+	 * 缩放对象
+	 *
+	 */
+	function scaleSlip(instance) {
+		this.instance = instance;	
+
+		this.option = instance.option;
+		instance.containerInner = this.option.target || instance.containerInner;
+
+		this.offsetY = 0;
+		this.offsetX = 0;
+		this.scaleX = 1;
+		this.scaleY = 1;
+	}
+
+	/**
+	 * 重置和初始化滑动对象
+	 *
+	 */
+	scaleSlip.prototype.reset = function() {
+		this.set(1, 0, 0);
+	}
+
+	/**
+	 * 动画偏移
+	 *
+	 */
+	scaleSlip.prototype.offset = function(offx, offy, evt) {
+		//计算二手指滑动距离，然后再通过在父容器中的占比得到缩放比例
+		if(evt.offsetPos && evt.offsetPos.length == 2) {
+			//上次滑动二指的距离
+			var preOffX = evt.prePositions[0].x - evt.prePositions[1].x;
+			var preOffY = evt.prePositions[0].y - evt.prePositions[1].y;
+			var preDis = Math.sqrt(preOffX * preOffX + preOffY * preOffY);
+			//当次滑动二指的距离
+			var curOffX = evt.positions[0].x - evt.positions[1].x;
+			var curOffY = evt.positions[0].y - evt.positions[1].y;
+			var curDis = Math.sqrt(curOffX * curOffX + curOffY * curOffY);
+
+			var disx = Math.abs(preOffX - curOffX);//x轴滑行的距离
+			var disy = Math.abs(preOffY - curOffY);//y轴滑行的距离
+
+			var cW = this.instance.container.offsetWidth || this.instance.container.clientWidth;
+			var cH = this.instance.container.offsetHeight || this.instance.container.clientHeight;
+			if(!cW || !cH) return;
+			//计算放大比例
+			var offxper = disx / cW;
+			var offyper = disy / cH;
+
+			//往外拉，则表示放大
+			if(preDis < curDis) {
+				var per = this.scaleX + this.scaleX * Math.max(offxper, offyper);
+			}
+			//缩小
+			else if(preDis > curDis) {
+				var per = this.scaleX * Math.min(1 - offxper, 1- offyper);
+			}
+			if(per) {
+				if(this.option.onScaleStart) {
+					var o = this.option.onScaleStart(per, evt);
+					if(o === false) return;
+				}
+				this.set(per);//缩放
+				this.option.onScaleEnd && this.option.onScaleEnd(per, evt);
+				evt && evt.preventDefault && evt.preventDefault();//阻止默认响应
+			}
+        }
+        //如果支持滑动。则单指表示
+        else if(this.option.supportTranslate && evt.offsetPos && evt.offsetPos.length == 1) {
+			if(offx === false) offx = this.offsetX;
+			//如果被缩放，移动的距离要处理缩放比例，不然会漂
+			else offx /= this.scaleX;
+
+			if(offy === false) offy = this.offsetY;	
+			//如果被缩放，移动的距离要处理缩放比例，不然会漂
+			else offy /= this.scaleY;
+
+            this.set(0, this.offsetX + offx, this.offsetY + offy);
+
+            evt && evt.preventDefault && evt.preventDefault();//阻止默认响应
+        }
+	}
+
+	/**
+	 * 设置scall 或偏移量
+	 *
+	 */
+	scaleSlip.prototype.set = function(v, offx, offy) {
+		if(!v) v = this.scaleX;
+		//如果指定了最大缩放比例
+		if(this.option.maxScale && v > this.option.maxScale) v = this.option.maxScale;
+		//如果指定了最小缩放比例
+		if(this.option.minScale && v < this.option.minScale) v = this.option.minScale;
+
+        if(typeof offx == 'undefined') offx = this.offsetX;
+        if(typeof offy == 'undefined') offy = this.offsetY;
+
+        this.offsetX = offx;
+        this.offsetY = offy;
+
+		var tranX = 'scale3d(' + v + ',' + v + ',1) translate3d(' + offx + 'px,'+ offy +'px,0px)';
+		css(this.instance.containerInner,'transform', tranX, CSSMAP);
+		this.scaleX = this.scaleY = v;
+	}
+	//重写动画设置，这里不需要，直接空
+	scaleSlip.prototype.setTransition = function(b){
+
+	}
 
 	//设置对象样式
 	function css(el, name, value, map) {
