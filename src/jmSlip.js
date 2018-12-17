@@ -1774,6 +1774,12 @@
 	  		module.exports = jmSlip;
 	  	});
 	}
+	else if (typeof module !== 'undefined') {
+		module.exports = jmSlip;
+	}
+	else if (typeof exports !== 'undefined') {
+		exports.jmSlip = jmSlip;
+	}
 
 	return win.jmSlip = jmSlip;
 })(window, document);
