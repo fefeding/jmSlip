@@ -18,7 +18,7 @@ jmSlip/slip.js
 	var banner = 'banner'; //$('.js-banner');  //可以是id或jquery对象或原生node
 	var slip = new jmSlip(banner,'page', {
 		direction: 'x',
-		repeat: true //这里用平铺，表示不用上面那种移动不显示的页。一般用在需要显示部分边页的情况
+		repeat: true //这里用平铺
 	});
 	//窗口改变
     window.onresize = function(){
@@ -26,8 +26,7 @@ jmSlip/slip.js
     };
 </script>
 ```
-参数
----
+### 参数
 1. `element` 当前组件控制的dom容器。可以是id、jquery对象或原生node对象。
 2. `type`   滑动方式，`page`、`scale`、`drag`等。
 3. `option` 滑动参数。格式
