@@ -219,3 +219,5 @@ var slip = new jmSlip(entry,'drag', {
 ## 滚动(scroll)
 跟原生滚动条类似
 示例：[http://jiamao.github.io/jmSlip/demo/scroll/index.html](http://jiamao.github.io/jmSlip/demo/scroll/index.html)
+
+列表操作项：[http://jiamao.github.io/jmSlip/demo/scroll/scroll_item.html](http://jiamao.github.io/jmSlip/demo/scroll/scroll_item.html)
