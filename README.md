@@ -197,6 +197,9 @@ var slip = new jmSlip(container, 'scale', {
 ```javascript
 var entry = $('.act-enter');
 var slip = new jmSlip(entry,'drag', {
+	onTouchStart: function(e){
+      e && e.preventDefault && e.preventDefault();//阻止默认响应
+    },
 	dragEnd: function() {	
 		var offx = this.offsetX;//当前偏移量
 		var offy = this.offsetY;

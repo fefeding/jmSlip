@@ -32,13 +32,16 @@
 </head>
 <body style="margin:0; height: 100%;">
 
-<a class="act-enter" href="#">
-<img src="//mat1.gtimg.com/pingjs/ext2020/qqindex2018/dist/img/qq_logo_2x.png"/>
-</a>
+<div class="act-enter">
+  <img src="//mat1.gtimg.com/pingjs/ext2020/qqindex2018/dist/img/qq_logo_2x.png"/>
+</idv>
 <script>
 $(function(){	
   var entry = $('.act-enter');
 	var slip = new jmSlip(entry,'drag', {
+    onTouchStart: function(e){
+      e && e.preventDefault && e.preventDefault();//阻止默认响应
+    },
 		dragEnd: function() {
 		
       var offx = this.offsetX;//当前偏移量

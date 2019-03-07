@@ -125,6 +125,11 @@
 					return;
 				}
 			}	
+			//执行滑动对象的touch事件
+			if(self.slipObj && self.slipObj.onTouchStart) {
+				var ret = self.slipObj.onTouchStart(evt);
+				if(ret === false) return;
+			}
 			if(self.interval) {
 				clearTimeout(self.interval);
 			}
@@ -1285,6 +1290,10 @@
 		this.option = instance.option;
 		this.offsetY = 0;
 		this.offsetX = 0;
+		//拖放时，不响应默认效果
+		this.onTouchStart = function(e) {
+			e && e.preventDefault && e.preventDefault();//阻止默认响应
+		}
 	}
 
 	/**
@@ -1302,7 +1311,8 @@
 	dragSlip.prototype.offset = function(offx, offy, evt) {		
 		offx += this.offsetX;		
 		offy += this.offsetY;
-		evt && evt.preventDefault && evt.preventDefault();//阻止默认响应			
+		//evt && evt.preventDefault && evt.preventDefault();//阻止默认响应
+		evt && evt.stopPropagation && evt.stopPropagation();			
 		return this.move(offx, offy);
 	}
 
@@ -1535,6 +1545,10 @@
 		this.offsetX = 0;
 		this.scaleX = 1;
 		this.scaleY = 1;
+		//拖放时，不响应默认效果
+		this.onTouchStart = function(e) {
+			e && e.preventDefault && e.preventDefault();//阻止默认响应
+		}
 	}
 
 	/**

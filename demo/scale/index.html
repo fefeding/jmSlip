@@ -42,6 +42,9 @@ $(function(){
         supportTranslate: true,//是否支持移动
         maxScale: 4, //最大放大4倍
         minScale: 0.1, //最小缩小到10%
+        onTouchStart: function(e){
+            //e && e.preventDefault && e.preventDefault();//阻止默认响应
+        },
         onTouchMove: function(e){
             //if(e.offsetPos.length == 2)container.append(JSON.stringify(e.offsetPos));
         },
