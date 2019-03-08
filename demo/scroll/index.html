@@ -173,7 +173,10 @@
 var slip1 = new jmSlip('banner1','scroll',{
 	direction: 'x', 
 	itemOffWidth: 1,
-	minOffset: 0 //如果设为0表示没有惯性
+	minOffset: 0, //如果设为0表示没有惯性
+	onTouchStart: function(e){
+      e && e.preventDefault && e.preventDefault();//阻止默认响应
+    }
 });
 var slip2 = new jmSlip('banner2','scroll',{direction: 'y', itemOffHeight: 1});
 $(window).resize(function(){
