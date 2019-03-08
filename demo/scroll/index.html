@@ -178,7 +178,13 @@ var slip1 = new jmSlip('banner1','scroll',{
       e && e.preventDefault && e.preventDefault();//阻止默认响应
     }
 });
-var slip2 = new jmSlip('banner2','scroll',{direction: 'y', itemOffHeight: 1});
+var slip2 = new jmSlip('banner2','scroll',{
+	direction: 'y', 
+	itemOffHeight: 1,
+	onTouchStart: function(e){
+      e && e.preventDefault && e.preventDefault();//阻止默认响应
+    }
+});
 $(window).resize(function(){
 	slip1.reset();
 	slip2.reset();
