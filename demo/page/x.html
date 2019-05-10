@@ -1,0 +1,119 @@
+<!doctype html>
+<html style="height:100%;margin:0;">
+<head>
+<meta charset="utf-8">
+<title>横屏分页</title>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<meta name="format-detection" content="telephone=no" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1, user-scalable=no"/>
+<script src="//mat1.gtimg.com/www/mobi/js/zepto.min.js"></script>
+<script src="../../src/jmSlip.js"></script>
+<style>
+.banner {
+	width: 100%;
+	margin-top: 20px;
+	overflow:visible;
+}
+.banner > ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	overflow: visible;
+	height: 158px;
+	display:block;
+}
+.banner > ul > li {
+	float: left;
+	padding-top: inherit;
+}
+.banner > ul > li > a {
+	display: block;
+	padding-top: 38%;
+	background-position: center;
+	background-size: cover;
+	text-decoration: none;
+}
+</style>
+</head>
+<body style="margin:0;">
+<section class="banner js-banner1">
+	<ul>
+		<li>
+			<a href="#" style="background-image:url(//inews.gtimg.com/newsapp_ls/0/7984754149_640330/0?tp=webp);" ></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(//inews.gtimg.com/newsapp_ls/0/7991152941_640330/0?tp=webp);"></a>
+		</li>
+		<!--<li>
+			<a href="#"  style="background-image:url(//inews.gtimg.com/newsapp_ls/0/7990419610_640330/0?tp=webp);"></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(//inews.gtimg.com/newsapp_ls/0/7987033846_640330/0?tp=webp);"></a>
+		</li>-->
+	</ul>
+</section>
+
+<section class="banner js-banner2" style="width:80%;margin:auto;">
+	<ul>
+		<li>
+			<a href="#" style="background-image:url(//inews.gtimg.com/newsapp_ls/0/7984754149_640330/0?tp=webp);width: 90%;margin:auto;" ></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(//inews.gtimg.com/newsapp_ls/0/7991152941_640330/0?tp=webp);width: 90%;margin:auto;"></a>
+		</li>
+		<li>
+			<a href="#"  style="background-image:url(//inews.gtimg.com/newsapp_ls/0/7990419610_640330/0?tp=webp);width: 90%;margin:auto;"></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(//inews.gtimg.com/newsapp_ls/0/7987033846_640330/0?tp=webp);width: 90%;margin:auto;"></a>
+		</li>
+	</ul>
+</section>
+
+<script>
+	var banner1 = $('.js-banner1');
+	var slip = new jmSlip(banner1,'page',{
+		//changeTime: 1000, 
+		direction: 'x',
+		repeat: false,
+		loop: true,//循环切换
+		mousewheel:true,//支持滚轮
+		onPageStart: function(page) {
+			console.log(page);
+		}, //翻页开始前回调，如果返回false则翻页中止
+		onPageEnd: function(oldpage, newpage){
+			console.log(oldpage);
+			console.log(newpage);
+		} ,//翻页结束回调
+		onTouchStart: function(evt){
+			console.log(evt);
+		}, //滑动开始，返回false中止滑动
+		onTouchMove: function(evt, offset){
+			evt.preventDefault();
+			console.log(evt);
+			console.log(offset);//相对于start的位移
+		}, //滑动中，返回false中止
+		onTouchEnd: function(evt){
+			console.log(evt);
+		} //滑动结束，返回false中止
+	});
+
+	var banner2 = $('.js-banner2');
+	var slip2 = new jmSlip(banner2,'page',{
+		//changeTime: 1000, 
+		direction: 'x',
+		repeat: true //这里用平铺，表示不用上面那种移动不显示的页。一般用在需要显示部分边页的情况
+	});
+
+$(window).resize(function(){
+
+	slip.reset();
+});
+</script>
+ <script type="text/javascript" src="http://tajs.qq.com/stats?sId=45761699" charset="UTF-8"></script>
+
+</body>
+</html>

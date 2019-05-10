@@ -1,0 +1,271 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport">
+<meta content="yes" name="apple-mobile-web-app-capable">
+<meta content="black" name="apple-mobile-web-app-status-bar-style">
+<meta content="telephone=no" name="format-detection">
+<meta content="email=no" name="format-detection">
+<title>日历</title>
+<style>
+body,html{
+	font-family: Helvetica;
+    font-weight: 100;
+}
+.justify {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+}
+.cell-box {
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,.05);
+}
+.date-wrap {
+    padding: 17px 0 18px;
+    overflow: hidden;
+}
+.date-wrap .hd {
+    padding: 0 15px;
+    font-size: 12px;
+    color: #888;
+}
+.date-wrap .bd {
+    padding-top: 13px;
+}
+.date-wrap .hd .week {
+    font-size: 20px;
+    line-height: 26px;
+}
+.date-wrap .btn-chief-hollow {
+    min-width: 49px;
+    display: inline-block;
+    height: 28px;
+    line-height: 28px;
+    border: 1px solid #417ddf;
+    border-radius: 3px;
+    color: #417ddf;
+    font-size: 12px;
+    text-align: center;
+    text-decoration: none;
+}
+.date-wrap .date-list {
+	list-style: none;
+    display: -webkit-box;
+    white-space: nowrap;
+    height: 52px;
+    font-size: 0;
+    margin: 0;
+    padding: 0;
+}
+.date-wrap .date-list li {
+    -webkit-box-flex: 1;
+    text-align: center;
+    display: inline-block;
+    text-align: center;
+    width: 50px;
+    height: 52px;
+    font-size: 0;
+}
+.date-wrap .date-list li .week {
+	margin: 0;
+	padding: 0;
+    padding-bottom: 7px;
+    font-size: 12px;
+    color: #b2b2b2;
+    line-height: 15px;
+}
+.date-wrap .date-list li .date {
+	margin: 0;
+	padding: 0;
+    position: relative;
+    margin: 0 auto;
+    width: 30px;
+    height: 30px;
+    border-radius: 100%;
+    font-size: 14px;
+    color: #d3d3d3;
+    line-height: 30px;
+}
+.date-wrap .date-list li.in-case .date {
+    color: #000;
+}
+.date-wrap .date-list li.cur .date {
+    background-color: #2f78ec;
+    color: #fff;
+}
+</style>
+<script src="http://mat1.gtimg.com/www/mobi/js/zepto.min.js"></script>
+<script src="../../src/jmSlip.js"></script>
+</head>
+<body>
+<div class="cell-box">  
+    <div class="date-wrap js-calendar">
+        <div class="hd justify">
+            <div class="lt">
+                <p class="js-date">十月 2016</p>
+                <p class="week js-week">星期一</p>
+            </div>
+            <div class="rt">
+                <a class="btn-chief-hollow js-tap-on js-today" href="javascript:;">今日</a>
+            </div>
+        </div>
+        <div class="bd">
+            <div class="date-list-wrap js-calendar-days-container">
+            <!-- 控制li
+                 1.当日，加"cur" 
+                 2.有事件，加"in-case" -->
+                <ul class="date-list js-calendar-days">                    
+	                <li class="js-item in-case js-has-data" data-day="20161011"> 
+	                    <p class="week">二</p>                        
+	                     <p class="date">11</p>                     
+	                </li>
+	                <li class="js-item" data-day="20161012"> 
+	                    <p class="week">三</p>                        
+	                     <p class="date">12</p>                     
+	                </li>
+	                <li class="js-item in-case js-has-data" data-day="20161013"> 
+	                    <p class="week">四</p>                        
+	                     <p class="date">13</p>                     
+	                </li>
+	                <li class="js-item in-case js-has-data" data-day="20161014"> 
+	                    <p class="week">五</p>                        
+	                     <p class="date">14</p>                     
+	                </li>
+	                <li class="js-item" data-day="20161015"> 
+	                    <p class="week">六</p>                        
+	                     <p class="date">15</p>                     
+	                </li>
+	                <li class="js-item" data-day="20161016"> 
+	                    <p class="week">日</p>                        
+	                     <p class="date">16</p>                     
+	                </li>
+	                <li class="js-item in-case js-has-data" data-day="20161017"> 
+	                    <p class="week">一</p>                        
+	                     <p class="date">17</p>                     
+	                </li>
+	                <li class="js-item" data-day="20161018"> 
+	                    <p class="week">二</p>                        
+	                     <p class="date">18</p>                     
+	                </li>
+	                <li class="js-item in-case js-has-data" data-day="20161019"> 
+	                    <p class="week">三</p>                        
+	                     <p class="date">今日</p>                     
+	                </li>
+	                <li class="js-itema" data-day="20161020"> 
+	                    <p class="week">四</p>                        
+	                     <p class="date">20</p>                     
+	                </li>
+	                <li class="js-item" data-day="20161021"> 
+	                    <p class="week">五</p>                        
+	                     <p class="date">21</p>                     
+	                </li>
+	                <li class="js-item in-case js-has-data" data-day="20161022"> 
+	                    <p class="week">六</p>                        
+	                     <p class="date">22</p>                     
+	                </li>
+	                <li class="js-item" data-day="20161023"> 
+	                    <p class="week">日</p>                        
+	                     <p class="date">23</p>                     
+	                </li>
+	                 <li class="js-item in-case js-has-data" data-day="20161024"> 
+	                    <p class="week">一</p>                        
+	                     <p class="date">24</p>                     
+	                </li>
+	                 <li class="js-item in-case js-has-data" data-day="20161025"> 
+	                    <p class="week">二</p>                        
+	                     <p class="date">25</p>                     
+	                </li>
+	                 <li class="js-item in-case js-has-data" data-day="20161026"> 
+	                    <p class="week">三</p>                        
+	                     <p class="date">26</p>                     
+	                </li>
+	                 <li class="js-item in-case js-has-data" data-day="20161027"> 
+	                    <p class="week">四</p>                        
+	                     <p class="date">27</p>                     
+	                </li>
+                </ul>
+            </div>           
+        </div>
+    </div>
+</div>
+<br />
+<br />
+<div class="js-content"></div>
+<script>
+	var slipCalendar = new jmSlip($('.js-calendar-days-container'),'item',{
+		mousewheel:true,//支持滚轮
+		direction: 'x', 
+		page: $('.js-calendar-days li[data-day="20161019"]').index(),//默认选中20161019这天，当它为今天
+		duration: 800,
+		itemOffWidth: 0, //每个项的偏移量纠正
+		//当滑动时自动选择回调，自定义控制是否可选
+		selectHandler: function(curIndex, newIndex) {
+			//获取自动选择的那一天，如果不是可选的，则选择它最近的一天
+			var item = $('.js-calendar-days li').eq(newIndex);
+			if(!item.hasClass('js-has-data')) {
+				//如果是往后拉，则优先向后搜询可用的日期
+				//只往前后同时搜4天，超过，则按用户拉的方向一直向下搜
+				var der = curIndex > newIndex?-1:1;
+				for(var i=1;i<5;i++) {
+					var index = newIndex+(i*der);
+					item = $('.js-calendar-days li').eq(index);
+					if(item.hasClass('js-has-data') && index != curIndex) return index;
+					index = newIndex-(i*der);
+					item = $('.js-calendar-days li').eq(index);
+					if(item.hasClass('js-has-data') && index != curIndex) return index;
+				}
+				//依然没有找到，则一直往前找
+				//最长找三个月
+				for(;i<93;i++) {
+					var index = newIndex+(i*der);
+					item = $('.js-calendar-days li').eq(index);
+					if(item.hasClass('js-has-data') && index != curIndex) return index;
+				}
+				
+				//找不到可用的日期，则返回
+				return false;
+			}
+		},
+		onPageStart: function(index){
+			//获取自动选择的那一天，如果不是可选的，则选择它最近的一天
+			var item = $('.js-calendar-days li').eq(index);
+			if(!item.hasClass('js-has-data')) return false;
+		},
+		onTouchMove: function(evt, offset) {
+			
+		},
+		onPageEnd: function(oldPage,newPage) {					
+			//定位于选择的那一天
+			var item = $('.js-calendar-days li').eq(newPage);
+			if(item.hasClass('cur')) return;//如果它是已经被选中的，则直接返回，不需要再触发查询数据
+			$('.js-calendar-days').find('li.cur').removeClass('cur');
+			item.addClass('cur');
+			
+			//刷新其数据
+			$('.js-content').html(item.attr('data-day'));
+		}
+	});
+
+	//选中某个日期，则拉取它的数据
+	//只能选择有数据的项
+	$('.js-calendar-days').on('click', '.js-has-data', function(){
+		if(!slipCalendar || $(this).hasClass('cur')) return;
+		//定位于选择的那一天
+		slipCalendar.go($(this).index());			
+	});
+
+	$('.js-today').click(function(){
+		slipCalendar.go($('.js-calendar-days li[data-day="20161019"]').index());
+	});
+
+	//如果动态改变了日期，比如新增了某些天，则可以用slipCalendar.reset()重置日历
+</script>
+<script src="home.js"></script>
+</body>
+</html>

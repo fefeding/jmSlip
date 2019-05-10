@@ -1,0 +1,66 @@
+<!doctype html>
+<html style="height:100%;margin:0;">
+<head>
+<meta charset="utf-8">
+<title>drag-jmslip</title>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<meta name="format-detection" content="telephone=no" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1, user-scalable=no"/>
+<script src="//mat1.gtimg.com/www/mobi/js/zepto.min.js"></script>
+<script src="../../src/jmSlip.js"></script>
+<style>
+
+.act-enter {
+  width: 105px;
+  height: 113px;
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  margin-top: -40px;
+  z-index: 1000;
+  display: block;
+  -webkit-transform: rotate(0deg) scale(.8);
+  -moz-transform: rotate(0deg) scale(.8);
+  -o-transform: rotate(0deg) scale(.8);
+  -ms-transform: rotate(0deg) scale(.8);
+  transform: rotate(0deg) scale(.8);
+}
+</style>
+</head>
+<body style="margin:0; height: 100%;">
+
+<div class="act-enter">
+  <img src="//mat1.gtimg.com/pingjs/ext2020/qqindex2018/dist/img/qq_logo_2x.png"/>
+</idv>
+<script>
+$(function(){	
+  var entry = $('.act-enter');
+	var slip = new jmSlip(entry,'drag', {
+    onTouchStart: function(e){
+      e && e.preventDefault && e.preventDefault();//阻止默认响应
+    },
+		dragEnd: function() {
+		
+      var offx = this.offsetX;//当前偏移量
+      var offy = this.offsetY;
+
+      var posw = entry.offset().left + entry.width() / 2;
+      var winw = $(window).width();
+      //如果偏左的话，则定到左侧
+      if(posw <= winw / 2) {
+        offx -= entry.offset().left;           
+      }
+      else {
+        offx += winw - posw - entry.width() / 2;  
+      }
+      //粘到左右边上
+      this.move(offx, offy);
+		}
+	});
+});	
+</script>
+</body>
+</html>

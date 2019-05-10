@@ -1,0 +1,412 @@
+html, body{
+	padding:0;
+	margin:0;
+	overflow: hidden;
+	position: relative;
+	background-color: #fff;
+}
+
+.circle{
+	border-radius: 50%;
+	border: 1px solid #23A253;
+}
+
+
+.page{
+	height: 100%;
+	margin: 0;
+	background-size: 100%;
+	background-repeat: no-repeat;
+	background-position: center center;
+	position: relative;
+}
+.orient .page{
+}
+.orient .page-1{
+	background-size: 50%;
+}
+.page .banner {
+	background-color:#23A253;
+	position: absolute;
+	height: 100px;
+	top: 50%;
+	margin-top: -25%;
+	width: 100%;
+	text-align: center;
+	color: #fff;
+}
+.page .banner .mark {
+	background-image: url(../img/sp1.png);
+	background-size: contain;
+	background-repeat: no-repeat;
+	width: 80px;
+	height: 100px;
+	text-align: left;
+	display: inline-block;
+}
+.page .banner .mark > span {
+	color: #23A253;
+	display: inline-block;
+	margin: 43px 0 0 18px;
+	font-size: 30px;
+	font-weight: bold;
+}
+.page .banner > span{
+	color: #fff;
+	font-size: 26px;
+	font-weight: bold;
+	line-height: 36px;
+}
+
+b{
+	position: absolute;
+	bottom: 15px;
+	left: 0;
+	right: 0;
+	height: 15px;
+	opacity: .4;
+	-webkit-transition: all .4s ease-in;
+	transition: all .4s ease-in;
+}
+
+
+b:before, b:after {
+	content: "";
+	display: block;
+	background: #000;
+	width: 2px;
+	height: 14px;
+	position: absolute;
+	left: 50%;
+	bottom: 0;
+	-webkit-transform: rotate(-55deg);
+	transform: rotate(-55deg);
+	-webkit-transform-origin: 100% 100%;
+	transform-origin: 100% 100%;
+}
+b:after {
+	-webkit-transform: rotate(55deg);
+	transform: rotate(55deg);
+	-webkit-transform-origin: 0 100%;
+	transform-origin: 0 100%;
+}
+
+.page-1{
+	background-position: center 25%;
+	background-image: url(../img/logo.png);
+}
+.page-1 .banner {
+	width: 100%;
+	height:80px;
+	position:absolute;
+	top: auto;
+	bottom:40%;	
+	text-align: center;
+	color: #fff;
+	font-size: 26px;
+	font-weight: bold;
+	line-height: 36px;
+}
+.page-1 .time{
+	bottom: 30%;
+	position: absolute;
+	text-align: center;
+	display: block;
+	width: 100%;
+	color: #23A253;
+	font-weight: bold;
+}
+/*
+.page-2 {
+	background-color:#23A253;
+}
+*/
+.page-2 .banner{
+	top: auto!important;
+	bottom: 0;
+	margin: 0;
+	background-color:#23A253;
+	height: 80px;
+}
+.page-2 .logo {
+	position: absolute;
+	top: 6%;
+	left: 50%;
+	margin-left: -50%;
+	width: 100%;
+	height: 100px;
+	background-size: 40%;
+	background-position: center center;
+	background-image: url(../img/logo.png);
+	background-repeat: no-repeat;
+}
+.page-2 > p {
+	color: #23A253;
+	position: absolute;
+	top: 32%;
+	text-indent: 1em;
+	line-height: 28px;
+	font-size: 18px;
+	margin: 0 12px;
+}
+
+.page-3 {
+	margin: 0;
+	text-align: center;	
+}
+
+.page-3 > .arc{
+	width: 200px;
+	height: 200px;
+	margin: 0 auto;
+	-webkit-transform: translateY(20px);
+	transform: translateY(20px);
+	position: relative;
+	background-size: 40%;
+	background-position: center center;
+	background-image: url(../img/logo.png);
+	background-repeat: no-repeat;
+}
+.page-3 > .arc .arc1 {
+	width: 100%;
+	height: 100%;
+}
+.page-3 > .arc .arc2 {
+	width: 70%;
+	height: 70%;
+	margin: 15% 15%;
+}
+.page-3 > .arc img {
+	position: absolute;
+	width: 50px;
+}
+.page-3 > .arc img.img1 {
+	top: 10%;
+	left: -10px;
+}
+.page-3 > .arc img.img2 {
+	top: 20%;
+	right: -10px;
+	width: 55px;
+}
+.page-3 > .arc img.img3 {
+	bottom: 5%;
+	left: 35%;
+}
+.page-3 .desc{
+	text-align: left;
+	font-size: 14px;
+	padding-left: 20%;
+	margin-top: 20%;
+}
+.page-3 h2 {
+	display: block;
+	color: #23A253;
+}
+.page-3 .fon{
+	height: 20px;
+	padding: 2px 20px;
+	margin: 8px 0;
+	border-left: 2px solid #23A253;
+	display: block;
+}
+.page-3 .fon>span{
+	color: #23A253;
+}
+.page-3 .banner{
+	top: auto!important;
+	bottom: 40px;
+	margin: 0;
+	background-color:#23A253;
+	height: 10px;
+}
+
+.page>.title{
+	line-height: 40px;
+	color: #23A253;
+	padding: 0 75px;
+	font-weight: bold;
+	margin: 0 2px;
+	border-bottom: 2px solid #23A253; 
+	background-size: 20%;
+	background-position: 4px center;
+	background-image: url(../img/logo.png);
+	background-repeat: no-repeat;
+	margin-bottom: 40px;
+}
+.page-4 .zz{
+	text-align: center;
+}
+.page-4 img {
+	width: 40%;
+	max-width: 40%;
+	margin: 5% auto;
+	text-align: center;
+}
+
+.page-5 {
+	
+}
+.page-5 .banner{
+	top:0;
+	margin-top:0;
+	color: #fff;
+	text-align: left;
+	padding: 4px 8px;
+	height: 60px;
+}
+.page-5 .pro-first{
+	margin-top: 70px!important;
+}
+.page-5 .pro {
+	text-align: center;
+	margin: 10% auto;
+	width: 100%;
+}
+.page-5 .pro span{
+	font-size: 14px;
+	color: #ddd;
+	display: block;
+	margin-top: 10px;
+}
+.page-5 .pro img{
+	width: 100px;
+}
+
+.page-6 .title{
+	margin-bottom: 10px;
+}
+.page-6 .banner{
+	position: relative;
+	text-align: left;
+	padding: 10px;
+	margin-top: auto;
+	top: auto;
+	color: #fff;
+	height: auto;
+}
+.page-6 .banner h4{
+	margin: 2px;
+}
+.page-6 .banner ul{
+	list-style: none;
+
+}
+.page-6 .banner ul li {
+	margin:2px;
+	display: block;
+}
+.page-6 .banner h4>span,.page-6 .banner ul li>span{
+	font-weight: bold;
+	padding: 0 2px;
+}
+.page-6 .sp{
+	border-top: 2px solid #fff;
+	background-color: #23A253;
+	border-bottom:  2px solid #fff;
+	height: 2px;
+	margin: 5px 0;
+}
+
+.page-6 .address{
+	color:#23A253;
+	padding: 20px;
+}
+
+.page-7 .banner{
+	top: 10px;
+	margin-top: 0;
+	width: 40%;
+	min-width: 200px;
+	text-align: right;
+	font-weight: bold;
+	line-height: 20px;
+	padding: 4px;
+	height: 60px;
+	border-bottom: 2px solid #fff;
+	box-shadow: 0 2px #23A253;
+} 
+.page-7 .arc1{
+	width: 150px;
+	height: 150px;
+	padding: 12%;
+	background-color: #23A253;
+	position: absolute;
+	top: 15%;
+	left: -20px;
+	color: #fff;
+}
+.page-7 .arc2{
+	width: 100px;
+	height: 100px;
+	padding: 12%;
+	background-color: #BFEAD1;
+	position: absolute;
+	top: 10%;
+	right: -28px;
+	color: #1C5A36;
+	border: 0;
+}
+.page-7 .arc3{
+	width: 80px;
+	height: 80px;
+	padding: 12%;
+	background-color: #65BE86;
+	position: absolute;
+	top: 40%;
+	right: 0;
+	color: #fff;
+	border: 0;
+}
+.page-7 .arc4{
+	width: 80px;
+	height: 80px;
+	padding: 12%;
+	background-color: #91D1A9;
+	position: absolute;
+	bottom: 1%;
+	right: 12%;
+	color: #fff;
+	border: 0;
+}
+.page-7 .arc5{
+	width: 60px;
+	height: 60px;
+	padding: 12%;
+	background-color: #65BE86;
+	position: absolute;
+	bottom: 15%;
+	left: 10px;
+	color: #fff;
+	border: 0;
+}
+
+.page-8 {
+	background-size: 40%;
+	background-position: center 10%;
+	background-image: url(../img/logo.png);
+}
+.page-8 .banner{
+	top: auto;
+	bottom:35%;	
+	text-align: center;
+	color: #fff;
+	font-size: 26px;
+	font-weight: bold;
+	line-height: 80px;
+}
+.page-8 .link{
+	position: absolute;
+	top: 25%;
+	width: 100%;
+	font-size: 14px;
+	font-weight: bold;
+	line-height: 36px;
+	text-align: center;
+}
+.page-8 .link a{
+	font-size: 20px;
+	text-decoration: none;
+	color: #23A253;
+	margin-top: 20px;
+}

@@ -1,0 +1,71 @@
+<!doctype html>
+<html style="height:100%;margin:0;">
+<head>
+<meta charset="utf-8">
+<title>cmd规范加载</title>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<meta name="format-detection" content="telephone=no" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1, user-scalable=no"/>
+<script src="sea.js"></script>
+<style>
+#banner {
+	width: 100%;
+	margin-top: 20px;
+}
+#banner > ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	height: 158px;
+}
+#banner > ul > li {
+	float: left;
+	padding-top: inherit;
+}
+#banner > ul > li > a {
+	display: block;
+	padding-top: 38%;
+	background-position: center;
+	background-size: cover;
+	text-decoration: none;
+}
+</style>
+</head>
+<body style="margin:0;">
+<section id="banner">
+	<ul>
+		<li>
+			<a href="#" style="background-image:url(http://gqq.gtimg.com/zhuanlan/sBannerPic_20141107150521.jpg);" ></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://gqq.gtimg.com/zhuanlan/sBannerPic_20141107145405.jpg);"></a>
+		</li>
+		<li>
+			<a href="#"  style="background-image:url(http://gqq.gtimg.com/zhuanlan/sBannerPic_20141031200630.jpg);"></a>
+		</li>
+		<li>
+			<a href="#" style="background-image:url(http://gqq.gtimg.com/zhuanlan/sBannerPic_20141107145440.jpg);"></a>
+		</li>
+	</ul>
+</section>
+<script>
+
+// seajs
+seajs.config({
+    base: './'
+});
+//利用seajs加载jmSlip
+seajs.use('./index',function(page){
+	page.init();
+});
+
+
+</script>
+<script type="text/javascript" src="http://tajs.qq.com/stats?sId=45761699" charset="UTF-8"></script>
+
+</body>
+</html>

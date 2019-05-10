@@ -1,0 +1,401 @@
+<!doctype html>
+<html style="height:100%;margin:0;">
+<head>
+<meta charset="utf-8">
+<title>drag-jmslip</title>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<meta name="format-detection" content="telephone=no" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1, user-scalable=no"/>
+<script src="http://mat1.gtimg.com/www/mobi/js/zepto.min.js"></script>
+<script src="../../src/jmSlip.js"></script>
+<style>
+@media (min-width: 375px)
+html {
+    font-size: 10px;
+}
+@media (min-width: 360px)
+html {
+    font-size: 9.6px;
+}
+@media (min-width: 320px)
+html {
+    font-size: 9px;
+}
+html {
+    font-size: 10px;
+    height: 100%;
+}
+.tbl-td {
+    background: #fff;
+    margin: 0;
+    padding: 0;
+}
+div,h3,h4,p{
+  margin: 0;
+    padding: 0;
+}
+ul, dl, ol {
+    list-style: none;
+
+}
+.tbl-td .item {
+    position: relative;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+.tbl-td .item-cell {
+    min-height: 7.2rem;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+    padding-right: 1.5rem;
+    position: relative;
+    z-index: 4;
+    background: #fff;
+    -webkit-transition: 1s;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+.tbl-td .item-cell > div {
+    padding-left: 1.5rem;
+}
+.flex {
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    margin: 0;
+    padding: 0;
+}
+.tbl-td .item-cell .tt {
+    font-size: 1.4rem;
+    color: #353535;
+    line-height: 1.6rem;
+    font-weight: 400;
+}
+.tf {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+.tbl-td .item-cell .sub-txt, .tbl-td .item-cell .character-list li .sub-txt-group, .character-list li .tbl-td .item-cell .sub-txt-group {
+    font-size: 1.2rem;
+    color: #888;
+    padding-top: .8rem;
+    display: -webkit-box;
+    display: -ms-flexbox;
+}
+.tbl-td .item-cell .col-2 .sub-txt, .tbl-td .item-cell .col-2 .character-list li .sub-txt-group, .character-list li .tbl-td .item-cell .col-2 .sub-txt-group {
+    display: block;
+}
+.tbl-td .item-cell .sub-txt .num, .tbl-td .item-cell .character-list li .sub-txt-group .num, .character-list li .tbl-td .item-cell .sub-txt-group .num, .tbl-td .item-cell .sub-txt .tag-item, .tbl-td .item-cell .character-list li .sub-txt-group .tag-item, .character-list li .tbl-td .item-cell .sub-txt-group .tag-item {
+    display: block;
+    margin-right: .5rem;
+}
+.tbl-td .item-cell .col-2 {
+    text-align: right;
+    width: 22%;
+    padding-right: 1.5rem;
+}
+.tbl-td .item-cell .col-3 {
+    text-align: center;
+    width: 22%;
+}
+.tbl-td .item-cell .rate {
+    font-size: 1.4rem;
+    padding-bottom: 2rem;
+    padding-right: 1rem;
+}
+.f-red {
+    color: #eb5d5d !important;
+}
+.tbl-td .item-btn {
+    width: 7.2rem;
+    height: 100%;
+    background: #eb5d5d;
+    font-size: 1.4rem;
+    color: #fff;
+    text-align: center;
+    line-height: 7.2rem;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 2;
+}
+</style>
+</head>
+<body style="margin:0; height: 100%;position: relative;">
+<ul class="tbl-td js-list">                      
+<li class="item">             
+  <div class="item-cell js-slip-item" style="-webkit-transform:translateX(-7.2rem);"> 
+    <div class="col-1 flex">
+      <h3 class="tt tf">申万菱信中证环保指数基金</h3>
+      <p class="sub-txt">
+        <span class="num">163114</span>
+      </p>
+    </div>
+    <div class="col-2">
+        <h3 class="tt">0.9787</h3>
+        <p class="sub-txt">10-19</p>
+    </div>
+    <div class="col-3">
+      <p class="rate f-red">+10.59%</p>
+    </div>
+  </div>
+  <div class="item-btn js-del">删除</div>
+</li>
+<li class="item">
+  <div class="item-cell js-slip-item" style="-webkit-transform:translateX(-7.2rem);">
+    <div class="col-1 flex">
+      <h3 class="tt tf">易方达创业板ETF联接</h3>
+      <p class="sub-txt">
+        <span class="num">110026</span>
+      </p>
+    </div>
+    <div class="col-2">
+      <h3 class="tt">1.9188</h3>
+      <p class="sub-txt">10-19</p>
+    </div>
+    <div class="col-3">
+      <p class="rate f-red">+9.95%</p>
+    </div>
+  </div>
+  <div class="item-btn js-del">删除</div>
+</li> 
+<li class="item">
+  <div class="item-cell js-slip-item" style="-webkit-transform:translateX(-7.2rem);">
+    <div class="col-1 flex">
+      <h3 class="tt tf">易方达创业板ETF联接</h3>
+      <p class="sub-txt">
+        <span class="num">110026</span>
+      </p>
+    </div>
+    <div class="col-2">
+      <h3 class="tt">1.9188</h3>
+      <p class="sub-txt">10-19</p>
+    </div>
+    <div class="col-3">
+      <p class="rate f-red">+9.95%</p>
+    </div>
+  </div>
+  <div class="item-btn js-del">删除</div>
+</li>              
+<li class="item">
+  <div class="item-cell js-slip-item" style="-webkit-transform:translateX(-7.2rem);">
+    <div class="col-1 flex">
+      <h3 class="tt tf">易方达创业板ETF联接</h3>
+      <p class="sub-txt">
+        <span class="num">110026</span>
+      </p>
+    </div>
+    <div class="col-2">
+      <h3 class="tt">1.9188</h3>
+      <p class="sub-txt">10-19</p>
+    </div>
+    <div class="col-3">
+      <p class="rate f-red">+9.95%</p>
+    </div>
+  </div>
+  <div class="item-btn js-del">删除</div>
+</li>              
+<li class="item">
+  <div class="item-cell js-slip-item" style="-webkit-transform:translateX(-7.2rem);">
+    <div class="col-1 flex">
+      <h3 class="tt tf">易方达创业板ETF联接</h3>
+      <p class="sub-txt">
+        <span class="num">110026</span>
+      </p>
+    </div>
+    <div class="col-2">
+      <h3 class="tt">1.9188</h3>
+      <p class="sub-txt">10-19</p>
+    </div>
+    <div class="col-3">
+      <p class="rate f-red">+9.95%</p>
+    </div>
+  </div>
+  <div class="item-btn js-del">删除</div>
+</li>              
+<li class="item">
+  <div class="item-cell js-slip-item" style="-webkit-transform:translateX(-7.2rem);">
+    <div class="col-1 flex">
+      <h3 class="tt tf">易方达创业板ETF联接</h3>
+      <p class="sub-txt">
+        <span class="num">110026</span>
+      </p>
+    </div>
+    <div class="col-2">
+      <h3 class="tt">1.9188</h3>
+      <p class="sub-txt">10-19</p>
+    </div>
+    <div class="col-3">
+      <p class="rate f-red">+9.95%</p>
+    </div>
+  </div>
+  <div class="item-btn js-del">删除</div>
+</li>              
+<li class="item">
+  <div class="item-cell js-slip-item" style="-webkit-transform:translateX(-7.2rem);">
+    <div class="col-1 flex">
+      <h3 class="tt tf">易方达创业板ETF联接</h3>
+      <p class="sub-txt">
+        <span class="num">110026</span>
+      </p>
+    </div>
+    <div class="col-2">
+      <h3 class="tt">1.9188</h3>
+      <p class="sub-txt">10-19</p>
+    </div>
+    <div class="col-3">
+      <p class="rate f-red">+9.95%</p>
+    </div>
+  </div>
+  <div class="item-btn js-del">删除</div>
+</li>              
+<li class="item">
+  <div class="item-cell js-slip-item" style="-webkit-transform:translateX(-7.2rem);">
+    <div class="col-1 flex">
+      <h3 class="tt tf">易方达创业板ETF联接</h3>
+      <p class="sub-txt">
+        <span class="num">110026</span>
+      </p>
+    </div>
+    <div class="col-2">
+      <h3 class="tt">1.9188</h3>
+      <p class="sub-txt">10-19</p>
+    </div>
+    <div class="col-3">
+      <p class="rate f-red">+9.95%</p>
+    </div>
+  </div>
+  <div class="item-btn js-del">删除</div>
+</li>              
+<li class="item">
+  <div class="item-cell js-slip-item" style="-webkit-transform:translateX(-7.2rem);">
+    <div class="col-1 flex">
+      <h3 class="tt tf">易方达创业板ETF联接</h3>
+      <p class="sub-txt">
+        <span class="num">110026</span>
+      </p>
+    </div>
+    <div class="col-2">
+      <h3 class="tt">1.9188</h3>
+      <p class="sub-txt">10-19</p>
+    </div>
+    <div class="col-3">
+      <p class="rate f-red">+9.95%</p>
+    </div>
+  </div>
+  <div class="item-btn js-del">删除</div>
+</li>                                   
+
+<li class="item">
+  <div class="item-cell js-slip-item" style="-webkit-transform:translateX(-7.2rem);">
+    <div class="col-1 flex">
+      <h3 class="tt tf">易方达创业板ETF联接</h3>
+      <p class="sub-txt">
+        <span class="num">110026</span>
+      </p>
+    </div>
+    <div class="col-2">
+      <h3 class="tt">1.9188</h3>
+      <p class="sub-txt">10-19</p>
+    </div>
+    <div class="col-3">
+      <p class="rate f-red">+9.95%</p>
+    </div>
+  </div>
+  <div class="item-btn js-del">删除</div>
+</li>              
+<li class="item">
+  <div class="item-cell js-slip-item" style="-webkit-transform:translateX(-7.2rem);">
+    <div class="col-1 flex">
+      <h3 class="tt tf">易方达创业板ETF联接</h3>
+      <p class="sub-txt">
+        <span class="num">110026</span>
+      </p>
+    </div>
+    <div class="col-2">
+      <h3 class="tt">1.9188</h3>
+      <p class="sub-txt">10-19</p>
+    </div>
+    <div class="col-3">
+      <p class="rate f-red">+9.95%</p>
+    </div>
+  </div>
+  <div class="item-btn js-del">删除</div>
+</li>              
+<li class="item">
+  <div class="item-cell js-slip-item" style="-webkit-transform:translateX(-7.2rem);">
+    <div class="col-1 flex">
+      <h3 class="tt tf">易方达创业板ETF联接</h3>
+      <p class="sub-txt">
+        <span class="num">110026</span>
+      </p>
+    </div>
+    <div class="col-2">
+      <h3 class="tt">1.9188</h3>
+      <p class="sub-txt">10-19</p>
+    </div>
+    <div class="col-3">
+      <p class="rate f-red">+9.95%</p>
+    </div>
+  </div>
+  <div class="item-btn js-del">删除</div>
+</li>              
+<li class="item">
+  <div class="item-cell js-slip-item" style="-webkit-transform:translateX(-7.2rem);">
+    <div class="col-1 flex">
+      <h3 class="tt tf">易方达创业板ETF联接</h3>
+      <p class="sub-txt">
+        <span class="num">110026</span>
+      </p>
+    </div>
+    <div class="col-2">
+      <h3 class="tt">1.9188</h3>
+      <p class="sub-txt">10-19</p>
+    </div>
+    <div class="col-3">
+      <p class="rate f-red">+9.95%</p>
+    </div>
+  </div>
+  <div class="item-btn js-del">删除</div>
+</li>              
+<li class="item">
+  <div class="item-cell js-slip-item" style="-webkit-transform:translateX(-7.2rem);">
+    <div class="col-1 flex">
+      <h3 class="tt tf">易方达创业板ETF联接</h3>
+      <p class="sub-txt">
+        <span class="num">110026</span>
+      </p>
+    </div>
+    <div class="col-2">
+      <h3 class="tt">1.9188</h3>
+      <p class="sub-txt">10-19</p>
+    </div>
+    <div class="col-3">
+      <p class="rate f-red">+9.95%</p>
+    </div>
+  </div>
+  <div class="item-btn js-del">删除</div>
+</li>              
+</ul>
+<script>
+$(function(){	
+    //用css来定位需要滑动的对象
+  new jmSlip($('.js-list')[0],'scrollItem',{
+        direction: 'x', 
+        orientation: 'left',//指定只向哪一边滑
+        exclusion: true,//是否互斥，也就是另一个滑动时，前面滑的那个会复位
+        maxOffset: 80,//最大滑动多长，超过它的一半才会算一次完整滑动，否则会回位
+        //滑动对象选择器，表示要滑动每一项中的哪个元素
+        itemSelector: '.js-slip-item'
+    });
+	
+});	
+</script>
+</body>
+</html>

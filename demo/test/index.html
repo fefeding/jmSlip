@@ -1,0 +1,35 @@
+<!doctype html>
+<html style="height:100%;margin:0;">
+<head>
+<meta charset="utf-8">
+<title>横屏滑动项</title>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<meta name="format-detection" content="telephone=no" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1, user-scalable=no"/>
+
+</head>
+<body style="margin:0;position:relative;overflow-x:hidden;">
+<div id="div1" style="width:100%;height:1024px;background:red;transition:transform 1s ease-in 0s;"><button onclick="javascript:go();">go</button></div>
+<div id="div2" style="width:100%;height:600px;position:absolute;background:green;z-index:1;right:-100%;top:0;transition:transform 1s ease-in 0s;transform:translate3d(0,0,0)"></div>
+</body>
+<script>
+
+function go(){
+	document.getElementById('div1').style['transform'] = "translate3d(-100%,0,0)";
+	document.getElementById('div2').style['transform'] = "translate3d(-100%,0,0)";
+
+	setTimeout(function(){
+		document.getElementById('div1').style.display = 'none';
+		document.getElementById('div2').style.position = '';
+		document.getElementById('div2').style.zIndex = '';
+		document.getElementById('div2').style.right = '';
+		document.getElementById('div2').style.top = '';
+		document.getElementById('div2').style.transition = '';
+		document.getElementById('div2').style.transform = '';
+	},1000);
+}
+</script>
+</html>
