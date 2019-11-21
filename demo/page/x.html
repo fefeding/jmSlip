@@ -15,7 +15,7 @@
 .banner {
 	width: 100%;
 	margin-top: 20px;
-	overflow:visible;
+	
 }
 .banner > ul {
 	list-style: none;
@@ -39,7 +39,7 @@
 </style>
 </head>
 <body style="margin:0;">
-<section class="banner js-banner1">
+<section class="banner js-banner1" style="overflow: hidden;">
 	<ul>
 		<li>
 			<a href="#" style="background-image:url(//inews.gtimg.com/newsapp_ls/0/7984754149_640330/0?tp=webp);" ></a>
@@ -78,8 +78,8 @@
 	var slip = new jmSlip(banner1,'page',{
 		//changeTime: 1000, 
 		direction: 'x',
-		repeat: false,
-		loop: true,//循环切换
+		repeat: true,
+		//loop: true,//循环切换
 		mousewheel:true,//支持滚轮
 		onPageStart: function(page) {
 			console.log(page);
@@ -105,7 +105,8 @@
 	var slip2 = new jmSlip(banner2,'page',{
 		//changeTime: 1000, 
 		direction: 'x',
-		repeat: true //这里用平铺，表示不用上面那种移动不显示的页。一般用在需要显示部分边页的情况
+		loop: true,
+		//repeat: true //这里用平铺，表示不用上面那种移动不显示的页。一般用在需要显示部分边页的情况
 	});
 
 $(window).resize(function(){

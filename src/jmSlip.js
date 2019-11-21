@@ -357,9 +357,9 @@
 			
 			self.slipObj.offset(0, off, e);
 			wheelInterval = setTimeout(function(){
-				self.transition(true, null, 'linear');//动画
-				if(wheelOff > 0) self.slipObj.previous();
-				else if(wheelOff < 0) self.slipObj.next();
+				//self.transition(true, null, 'linear');//动画
+				if(wheelOff > 0) self.slipObj.previous && self.slipObj.previous();
+				else if(wheelOff < 0) self.slipObj.next && self.slipObj.next();
 				wheelOff = 0;
 			},500);	
 		}
@@ -646,7 +646,7 @@
 
                 if(nextpage) {
                     css(nextpage,'transform', 'translate3d(' + (this.pageWidth + offx) + 'px,0px,0px)', CSSMAP);
-                }
+				}
 
                 var tranX = 'translate3d(' + offx + 'px,0px,0px)';
                 if(curpage) {
@@ -777,13 +777,18 @@
                 var firstpage = this.children[page - 1];
                 //如果有设置循环翻页，则第一页后跳到最后一页
                 if(!firstpage && page === 0 && this.option.loop) {
-                    firstpage = this.children[len - 1];
+					firstpage = this.children[len - 1];
+					
+					css(firstpage, 'display', 'none');
+					setTimeout(function(){
+						css(firstpage, 'display', '');
+					}, this.option.durations * 1000);	
                 }
                 if(firstpage) {
                     //如果原页为最后一个，且跳到第二个页，这时就会导致第一个页面从最后跳到第一个，把它置底，省得会挡住动画
                     if(oldpage == len-1 || page == 1) firstpage.style.zIndex = this.option.zIndex - 2;
-                    if(this.instance.option.direction == 'x') {
-                        css(firstpage,'transform', 'translate3d(' + (0 - this.pageWidth) + 'px,0px,0px)', CSSMAP);
+                    if(this.instance.option.direction == 'x') {											
+						css(firstpage, 'transform', 'translate3d(' + (0 - this.pageWidth) + 'px,0px,0px)', CSSMAP);						
                     }
                     else css(firstpage,'transform', 'translate3d(0px,' + (0 - this.pageHeight) + 'px,0px)', CSSMAP);
                     if(!this.option.repeat && !firstpage.parentNode) {
@@ -814,12 +819,20 @@
                 var lastpage = this.children[page + 1];
                 //如果有设置循环翻页，则最后一页后面跟着的是第一页
                 if(!lastpage && page === len-1 && this.option.loop) {
-                    lastpage = this.children[0];
+					lastpage = this.children[0];
+
+					css(lastpage, 'display', 'none');
+					setTimeout(function(){
+						css(lastpage, 'display', '');
+					}, this.option.durations * 1000);
                 }
                 if(lastpage) {
                     //如果原页为第一个，且跳到最后第二页，这时就会导致最后一页从第一个跳到最后，把它置底，省得会挡住动画
                     if(oldpage == 0 || page == len-2) lastpage.style.zIndex = this.option.zIndex - 2;
-                    if(this.instance.option.direction == 'x') css(lastpage,'transform', 'translate3d(' + this.pageWidth + 'px,0px,0px)', CSSMAP);
+                    if(this.instance.option.direction == 'x') {
+						
+						css(lastpage,'transform', 'translate3d(' + this.pageWidth + 'px,0px,0px)', CSSMAP);
+					}
                     else css(lastpage,'transform', 'translate3d(0px,' + this.pageHeight + 'px,0px)', CSSMAP);
                     if(!this.option.repeat && !lastpage.parentNode) {
                         lastpage.style.zIndex = this.option.zIndex - 2;
@@ -842,7 +855,8 @@
         }
         else {
             this.initChildren();
-        }
+		}
+
 		this.move(0, 0);
 
 		//翻页后先调用自定义回调，以备做一些其它自定义处理
@@ -1586,22 +1600,15 @@
 			var offyper = disy / cH;
 
 			//往外拉，则表示放大
+			var per = 0;
 			if(preDis < curDis) {
-				var per = this.scaleX + this.scaleX * Math.max(offxper, offyper);
+				per = this.scaleX + this.scaleX * Math.max(offxper, offyper);
 			}
 			//缩小
 			else if(preDis > curDis) {
-				var per = this.scaleX * Math.min(1 - offxper, 1- offyper);
+				per = this.scaleX * Math.min(1 - offxper, 1- offyper);
 			}
-			if(per) {
-				if(this.option.onScaleStart) {
-					var o = this.option.onScaleStart(per, evt);
-					if(o === false) return;
-				}
-				this.set(per);//缩放
-				this.option.onScaleEnd && this.option.onScaleEnd(per, evt);
-				evt && evt.preventDefault && evt.preventDefault();//阻止默认响应
-			}
+			this.scale(per);
         }
         //如果支持滑动。则单指表示
         else if(this.option.supportTranslate && evt.offsetPos && evt.offsetPos.length == 1) {
@@ -1617,7 +1624,31 @@
 			else offy /= this.scaleY;
 
             this.set(0, this.offsetX + offx, this.offsetY + offy);            
-        }
+		}
+		else if(evt.wheelDelta) {
+			console.log(evt.wheelDelta)
+			var per = 0;
+			if(evt.wheelDelta > 0) {
+				per = this.scaleX + this.scaleX * evt.wheelDelta / 1000;
+			}
+			else {
+				per = this.scaleX * (1 + evt.wheelDelta / 1000);
+			}
+			this.scale(per);
+		}
+	}
+
+	// 按比例缩放
+	scaleSlip.prototype.scale = function(per, evt) {
+		if(per) {
+			if(this.option.onScaleStart) {
+				var o = this.option.onScaleStart(per, evt);
+				if(o === false) return;
+			}
+			this.set(per);//缩放
+			this.option.onScaleEnd && this.option.onScaleEnd(per, evt);
+			evt && evt.preventDefault && evt.preventDefault();//阻止默认响应
+		}
 	}
 
 	/**

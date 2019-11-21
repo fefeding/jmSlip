@@ -42,6 +42,7 @@ $(function(){
         supportTranslate: true,//是否支持移动
         maxScale: 4, //最大放大4倍
         minScale: 0.1, //最小缩小到10%
+        mousewheel: true, // 支持滑轮
         onTouchStart: function(e){
             //e && e.preventDefault && e.preventDefault();//阻止默认响应
         },
@@ -50,6 +51,9 @@ $(function(){
         },
         onScaleStart: function(per, e) {
             container.append('scale:' + per + '<br />');
+        },
+        onScaleEnd: function(per, e) {
+            
         }
     });
     
