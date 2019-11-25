@@ -1,7 +1,7 @@
-﻿{
+{
   "family": "jiamao",
   "name": "jmslip",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "h5滑动组件",
   "homepage": "http://slip.jm47.com/",
   "keywords": [
@@ -13,29 +13,20 @@
   "devDependencies": {},
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jiamao/jmslip.git"
+    "url": "git+https://github.com/jiamao/jmSlip.git"
   },
   "main": "./src/jmSlip.js",
-  "spm": {
-    "alias": {},
-    "output": [
-      "jmSlip.js"
-    ]
-  },
   "licenses": [
     {
       "type": "MIT",
-      "url": "https://github.com/jiamao/jmgraph/blob/master/LICENSE"
+      "url": "https://github.com/jiamao/jmSlip/blob/master/LICENSE"
     }
   ],
   "bugs": {
     "url": "https://github.com/jiamao/jmSlip/issues"
   },
-  "directories": {
-    "example": "demo"
-  },
   "scripts": {
-    "test": ""
+    "build": "cd build & npm i & gulp & cd .."
   },
   "license": "MIT"
 }
