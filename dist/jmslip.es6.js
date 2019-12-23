@@ -16,7 +16,7 @@
  * @date 2014-11-04
  */
 
-var slip = (function(win, doc) {
+export default (function(win, doc) {
 	var CSSMAP = ['', '-ms-', '-webkit-', '-o-', '-moz-'],	
 	hasTouch = 'ontouchstart' in win,//是否存在touch事件
 	minOffset = 30,//最小滑动距离表示翻页
@@ -582,6 +582,11 @@ var slip = (function(win, doc) {
 	 *
 	 */
 	pageSlip.prototype.offset = function(offx, offy, evt) {
+		var args = {
+			offsetX: offx,
+			offsetY: offy
+		};
+
 		if(this.instance.option.direction == 'x') {
 			//只有在横向移动更多才移动
 			if(Math.abs(offx) > Math.abs(offy)) {
@@ -590,6 +595,7 @@ var slip = (function(win, doc) {
 			}
 			else offx = false;
 			offy = false;
+			args.offsetY = 0;
 		}
 		else {
 			//只有在横向移动更多才移动
@@ -599,8 +605,13 @@ var slip = (function(win, doc) {
 			}
 			else offy = false;			
 			offx = false;
+			args.offsetX = 0;
 		}
-		return this.move(offx, offy);
+
+		this.move(offx, offy);
+
+		// 响应移动事件
+		this.option.onMove && this.option.onMove.call(this, args);
 	}
 
 	/**
@@ -779,10 +790,14 @@ var slip = (function(win, doc) {
                 if(!firstpage && page === 0 && this.option.loop) {
 					firstpage = this.children[len - 1];
 					
-					css(firstpage, 'display', 'none');
+					
 					setTimeout(function(){
-						css(firstpage, 'display', '');
-					}, this.option.durations * 1000);	
+						css(firstpage, 'display', 'none');
+
+						setTimeout(function(){
+							css(firstpage, 'display', '');
+						}, 2500);
+					}, 1000);	
                 }
                 if(firstpage) {
                     //如果原页为最后一个，且跳到第二个页，这时就会导致第一个页面从最后跳到第一个，把它置底，省得会挡住动画
@@ -1812,8 +1827,5 @@ var slip = (function(win, doc) {
 			return elParent(parent, selector);
 		}
 	}
-
-	return win.jmSlip = jmSlip;
+    return win.jmSlip = jmSlip;
 })(window, document);
-
-export default slip;

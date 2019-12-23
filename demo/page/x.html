@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1, user-scalable=no"/>
 <script src="//mat1.gtimg.com/www/mobi/js/zepto.min.js"></script>
-<script src="../../dist/jmslip.js"></script>
+<!-- <script src="../../src/jmslip.js"></script> -->
 <style>
 .banner {
 	width: 100%;
@@ -60,22 +60,28 @@
 	<ul>
 		<li>
 			<a href="#" style="background-image:url(//inews.gtimg.com/newsapp_ls/0/7984754149_640330/0?tp=webp);width: 90%;margin:auto;" ></a>
+			1
 		</li>
 		<li>
 			<a href="#" style="background-image:url(//inews.gtimg.com/newsapp_ls/0/7991152941_640330/0?tp=webp);width: 90%;margin:auto;"></a>
+			2
 		</li>
 		<li>
 			<a href="#"  style="background-image:url(//inews.gtimg.com/newsapp_ls/0/7990419610_640330/0?tp=webp);width: 90%;margin:auto;"></a>
+			3
 		</li>
 		<li>
 			<a href="#" style="background-image:url(//inews.gtimg.com/newsapp_ls/0/7987033846_640330/0?tp=webp);width: 90%;margin:auto;"></a>
+			4
 		</li>
 	</ul>
 </section>
 
-<script>
+<script type="module">
+	import jmSlip from '../../src/jmSlip.js';
+
 	var banner1 = $('.js-banner1');
-	var slip = new jmSlip(banner1,'page',{
+	/*var slip = new jmSlip(banner1,'page',{
 		//changeTime: 1000, 
 		direction: 'x',
 		repeat: true,
@@ -99,7 +105,7 @@
 		onTouchEnd: function(evt){
 			console.log(evt);
 		} //滑动结束，返回false中止
-	});
+	});*/
 
 	var banner2 = $('.js-banner2');
 	var slip2 = new jmSlip(banner2,'page',{

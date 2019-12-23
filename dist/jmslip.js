@@ -25,7 +25,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
  * @author fefeding
  * @date 2014-11-04
  */
-var slip = function (win, doc) {
+var _default = function (win, doc) {
   var CSSMAP = ['', '-ms-', '-webkit-', '-o-', '-moz-'],
       hasTouch = 'ontouchstart' in win,
       //是否存在touch事件
@@ -630,6 +630,11 @@ var slip = function (win, doc) {
 
 
   pageSlip.prototype.offset = function (offx, offy, evt) {
+    var args = {
+      offsetX: offx,
+      offsetY: offy
+    };
+
     if (this.instance.option.direction == 'x') {
       //只有在横向移动更多才移动
       if (Math.abs(offx) > Math.abs(offy)) {
@@ -638,6 +643,7 @@ var slip = function (win, doc) {
       } else offx = false;
 
       offy = false;
+      args.offsetY = 0;
     } else {
       //只有在横向移动更多才移动
       if (Math.abs(offy) > Math.abs(offx)) {
@@ -646,9 +652,12 @@ var slip = function (win, doc) {
       } else offy = false;
 
       offx = false;
+      args.offsetX = 0;
     }
 
-    return this.move(offx, offy);
+    this.move(offx, offy); // 响应移动事件
+
+    this.option.onMove && this.option.onMove.call(this, args);
   };
   /**
    * 手指滑动移动事件
@@ -827,10 +836,12 @@ var slip = function (win, doc) {
 
         if (!firstpage && page === 0 && this.option.loop) {
           firstpage = this.children[len - 1];
-          css(firstpage, 'display', 'none');
           setTimeout(function () {
-            css(firstpage, 'display', '');
-          }, this.option.durations * 1000);
+            css(firstpage, 'display', 'none');
+            setTimeout(function () {
+              css(firstpage, 'display', '');
+            }, 2500);
+          }, 1000);
         }
 
         if (firstpage) {
@@ -1908,7 +1919,6 @@ var slip = function (win, doc) {
   return win.jmSlip = jmSlip;
 }(window, document);
 
-var _default = slip;
 exports["default"] = _default;
 
 },{}]},{},[1]);
