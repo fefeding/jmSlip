@@ -66,14 +66,14 @@
 			<a href="#" style="background-image:url(//inews.gtimg.com/newsapp_ls/0/7991152941_640330/0?tp=webp);width: 90%;margin:auto;"></a>
 			2
 		</li>
-		<li>
+		<!--<li>
 			<a href="#"  style="background-image:url(//inews.gtimg.com/newsapp_ls/0/7990419610_640330/0?tp=webp);width: 90%;margin:auto;"></a>
 			3
 		</li>
 		<li>
 			<a href="#" style="background-image:url(//inews.gtimg.com/newsapp_ls/0/7987033846_640330/0?tp=webp);width: 90%;margin:auto;"></a>
 			4
-		</li>
+		</li>-->
 	</ul>
 </section>
 
@@ -111,13 +111,12 @@
 	var slip2 = new jmSlip(banner2,'page',{
 		//changeTime: 1000, 
 		direction: 'x',
-		loop: true,
-		//repeat: true //这里用平铺，表示不用上面那种移动不显示的页。一般用在需要显示部分边页的情况
+		loop: true
 	});
 
 $(window).resize(function(){
 
-	slip.reset();
+	slip2.reset();
 });
 </script>
  <script type="text/javascript" src="http://tajs.qq.com/stats?sId=45761699" charset="UTF-8"></script>

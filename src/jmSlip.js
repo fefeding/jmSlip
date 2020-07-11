@@ -89,10 +89,13 @@ export default (function(win, doc) {
 				break;
 			}
 		}
-		//css(el, 'overflow', 'hidden');
-		this.reset();		
-		this.bindEvent();//初始化手指滑动事件		
-		this.auto();
+		
+		var self = this;
+		setTimeout(function(){
+			self.reset();			
+			self.auto();
+		}, 10);	
+		this.bindEvent();//初始化手指滑动事件
 	}
 
 	//销毁组件
@@ -471,7 +474,9 @@ export default (function(win, doc) {
 		this.option.animate = 'page';
 		this.offsetY = 0;
 		this.offsetX = 0;
+		this.option.repeat = typeof this.option.repeat == 'undefined'?true:this.option.repeat;
 		this.page = instance && instance.page?instance.page: 0;
+		this.position = this.page; // 初始化时当前定位就是当前页码
 		this.transition = 'transform '+this.option.durations+'s ease-in-out 0s';
 		this.children = [];
 		if(instance && instance.containerInner) {			
@@ -492,12 +497,21 @@ export default (function(win, doc) {
 				var ch = this.instance.containerInner.children[i];
 				//如果在属性中没有设置page属性，则表示为后续补齐的，设置其page
 				var index = attr(ch, 'data-page');
-				if(typeof index == 'undefined') {
-					attr(ch, 'data-page', i%lastIndex);
+				var pos = attr(ch, 'data-position');
+
+				if(index === null) {
+					index = i%lastIndex;
+					attr(ch, 'data-page', index);
 				}
 				else {
 					lastIndex = parseInt(index, 10)+1;
 				}
+
+				// 当前偏移位置，当loop后，偏移位置就不再跟page相同了				
+				if(pos === null) {
+					attr(ch, 'data-position', i);
+				}
+
 				var exists = false;
 				for(var j=0;j<this.children.length;j++) {
 					if(this.children[j] == ch) {
@@ -516,7 +530,7 @@ export default (function(win, doc) {
                         offx = (i - this.page) * this.pageWidth;
                     }
                     else {
-                        offx = i < this.page?-this.pageWidth:i>this.page?this.pageWidth:0;
+                        offx = i < this.page? -this.pageWidth : (i>this.page? this.pageWidth : 0);
                     }
                     css(ch,'transform', 'translate3d(' + offx + 'px,0px,0px)', CSSMAP);
                 }
@@ -634,6 +648,8 @@ export default (function(win, doc) {
 			//如果没有下一页，则循 环到第一页
 			if(!nextpage) nextpage = this.children[0];
 		}
+
+		var curPos = attr(curpage, 'data-position') || this.page;
 		if(offx !== false) {
 			if(this.option.locked && !prepage && offx > 0) {
 				//如果锁定，则不能滑出当前区域
@@ -644,12 +660,13 @@ export default (function(win, doc) {
 				return;
 			}
 
-            if(this.option.repeat) {
+            //if(this.option.repeat) {
                 for(var i=0;i<this.children.length;i++) {
-                    var ox = (i - this.page) * this.pageWidth + offx;
+					var pos = attr(this.children[i], 'data-position') || i;// 取它的pos用来计算偏移量
+                    var ox = (pos - curPos) * this.pageWidth + offx;
                     css(this.children[i],'transform', 'translate3d(' + ox + 'px,0px,0px)', CSSMAP);
                 }
-            }
+            /*}
             else {
                 if(prepage) {
                     css(prepage,'transform', 'translate3d(' + (offx - this.pageWidth) + 'px,0px,0px)', CSSMAP);
@@ -664,7 +681,7 @@ export default (function(win, doc) {
                     css(curpage,'transform', tranX, CSSMAP);
                     curpage.style.zIndex = this.option.zIndex;
                 }
-            }
+            }*/
 			this.offsetX = offx;
 		}
 		if(offy !== false) {
@@ -764,10 +781,13 @@ export default (function(win, doc) {
 			}
 		}
 
-        this.page = this.instance.page = page;
+		var curpage = this.children[page];
+		var curpos = this.position = Number(attr(curpage, 'data-position'));
+		// 当前page变量不一定是页码，
+		this.page = this.instance.page = Number(attr(curpage, 'data-page'));
 
         //只保留 三页
-        if(!this.option.repeat) {
+        /*if(!this.option.repeat) {
             var curpage = this.children[page];
             curpage && (curpage.style.zIndex = this.option.zIndex);
             if(oldpage > page) {
@@ -864,8 +884,33 @@ export default (function(win, doc) {
                 }
             }
         }
-        else {
-            this.initChildren();
+        else {*/
+        //    this.initChildren();
+		//}
+		
+		// 如果需要循环播放，则不能按page排位，通过position来控制位移。前且滑到最后需要把第一页移到最后，依此
+		// 当前loop时，且页码为2时，page只是其索引，真的页码要读data-page属性
+		if(this.option.loop) {
+			for(var i=0; i<len; i++) {
+				var pos = Number(attr(this.children[i], 'data-position'));
+				// 如果翻到了第一个位置
+				if(curpos === 0) {
+					if(pos === len -1) {
+						attr(this.children[i], 'data-position', 0);
+					}
+					else {
+						attr(this.children[i], 'data-position', i + 1);
+					}
+				}
+				else if(curpos === len - 1) {
+					if(pos === 0) {
+						attr(this.children[i], 'data-position', len - 1);
+					}
+					else {
+						attr(this.children[i], 'data-position', i - 1);
+					}
+				}
+			}
 		}
 
 		this.move(0, 0);
