@@ -3,7 +3,7 @@ jmSlip/slip.js
 
 一个简单的WEB前端滑动组件
 
-主页:[http://jiamao.github.io/jmSlip/](http://jiamao.github.io/jmSlip/)
+主页:[http://fefeding.github.io/jmSlip/](http://fefeding.github.io/jmSlip/)
 
 开始
 ---
@@ -56,7 +56,7 @@ jmSlip/slip.js
 
 ## 翻页(page)
 按页切换
-* 横向翻页：[http://jiamao.github.io/jmSlip/demo/page/x.html](http://jiamao.github.io/jmSlip/demo/page/x.html)
+* 横向翻页：[http://fefeding.github.io/jmSlip/demo/page/x.html](http://fefeding.github.io/jmSlip/demo/page/x.html)
 ```javascript
 var slip = new jmSlip(banner1,'page',{
 		//changeTime: 1000, 
@@ -87,7 +87,7 @@ var slip = new jmSlip(banner1,'page',{
 		} //滑动结束，返回false中止
 	});
 ```
-* 纵向翻页 [http://jiamao.github.io/jmSlip/demo/page/y.html](http://jiamao.github.io/jmSlip/demo/page/y.html)
+* 纵向翻页 [http://fefeding.github.io/jmSlip/demo/page/y.html](http://fefeding.github.io/jmSlip/demo/page/y.html)
 ```javascript
 var slip = new jmSlip('wrap','page',{
 	changeTime: 0,
@@ -117,7 +117,7 @@ var slip = new jmSlip('wrap','page',{
 
 ## 滚动选中(item)
 一排滚动，中心位被选中效果。
-示例：[http://jiamao.github.io/jmSlip/demo/item/index.html](http://jiamao.github.io/jmSlip/demo/item/index.html)
+示例：[https://fefeding.github.io/jmSlip/demo/item/index.html](https://fefeding.github.io/jmSlip/demo/item/index.html)
 ```javascript
 var slip = new jmSlip('banner','item',{
 	//changeTime: 1500, 
@@ -174,7 +174,7 @@ var slip = new jmSlip('banner','item',{
 
 ## 缩放(scale)
 主要用于图片的缩放操作
-示例：[https://jiamao.github.io/jmSlip/demo/scale/index.html](https://jiamao.github.io/jmSlip/demo/scale/index.html)
+示例：[https://fefeding.github.io/jmSlip/demo/scale/index.html](https://fefeding.github.io/jmSlip/demo/scale/index.html)
 
 ```javascript
 var slip = new jmSlip(container, 'scale', {
@@ -193,7 +193,7 @@ var slip = new jmSlip(container, 'scale', {
 
 ## 拖放(drag)
 拖放对象，可以做一些贴边操作
-示例：[https://jiamao.github.io/jmSlip/demo/drag/index.html](https://jiamao.github.io/jmSlip/demo/drag/index.html)
+示例：[https://fefeding.github.io/jmSlip/demo/drag/index.html](https://fefeding.github.io/jmSlip/demo/drag/index.html)
 ```javascript
 var entry = $('.act-enter');
 var slip = new jmSlip(entry,'drag', {
@@ -221,6 +221,6 @@ var slip = new jmSlip(entry,'drag', {
 
 ## 滚动(scroll)
 跟原生滚动条类似
-示例：[http://jiamao.github.io/jmSlip/demo/scroll/index.html](http://jiamao.github.io/jmSlip/demo/scroll/index.html)
+示例：[http://fefeding.github.io/jmSlip/demo/scroll/index.html](http://fefeding.github.io/jmSlip/demo/scroll/index.html)
 
-列表操作项：[http://jiamao.github.io/jmSlip/demo/scroll/scroll_item.html](http://jiamao.github.io/jmSlip/demo/scroll/scroll_item.html)
+列表操作项：[http://fefeding.github.io/jmSlip/demo/scroll/scroll_item.html](http://fefeding.github.io/jmSlip/demo/scroll/scroll_item.html)
