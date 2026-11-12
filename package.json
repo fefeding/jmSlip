@@ -1,14 +1,21 @@
 {
   "family": "jiamao",
   "name": "jmslip",
-  "version": "1.0.4",
-  "description": "h5滑动组件",
-  "homepage": "http://slip.jm47.com/",
+  "version": "1.0.6",
+  "description": "Dependency-free H5 touch/mouse sliding component: paging, item picker, scrolling, swipe rows, drag and pinch zoom",
+  "homepage": "http://fefeding.github.io/jmSlip/",
   "keywords": [
-    "html5"
+    "html5",
+    "touch",
+    "slider",
+    "carousel",
+    "swipe",
+    "zoom"
   ],
   "author": "jiamao<haofefe@163.com>",
-  "engines": {},
+  "engines": {
+    "node": ">=14"
+  },
   "dependencies": {},
   "devDependencies": {},
   "repository": {
@@ -16,6 +23,27 @@
     "url": "git+https://github.com/jiamao/jmSlip.git"
   },
   "main": "./src/jmSlip.js",
+  "browser": "./dist/jmslip.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "browser": "./dist/jmslip.js",
+      "require": "./src/jmSlip.js",
+      "default": "./src/jmSlip.js"
+    },
+    "./dist/*": "./dist/*",
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src/",
+    "dist/",
+    "index.d.ts",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE"
+  ],
   "licenses": [
     {
       "type": "MIT",
@@ -26,7 +54,9 @@
     "url": "https://github.com/jiamao/jmSlip/issues"
   },
   "scripts": {
-    "build": "cd build & npm i & gulp & cd .."
+    "build": "node scripts/build.js",
+    "test": "node test/index.js"
   },
+  "sideEffects": true,
   "license": "MIT"
 }

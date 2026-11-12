@@ -16,53 +16,112 @@
  * @date 2014-11-04
  */
 
-var slip = (function(win, doc) {
-	var CSSMAP = ['', '-ms-', '-webkit-', '-o-', '-moz-'],	
-	hasTouch = 'ontouchstart' in win,//是否存在touch事件
-	minOffset = 30,//最小滑动距离表示翻页
+var jmSlipRuntime = (function(win, doc) {
+	// Only write the vendor prefix the browser actually needs. On modern
+	// browsers this is one style write per move instead of five.
+	function detectTransformPrefix() {
+		if(!doc || !doc.createElement) return [''];
+		var style = doc.createElement('div').style;
+		if('transform' in style) return [''];
+		if('webkitTransform' in style) return ['-webkit-'];
+		if('msTransform' in style) return ['-ms-'];
+		if('MozTransform' in style) return ['-moz-'];
+		return [''];
+	}
+	var CSSMAP = detectTransformPrefix(),
+	hasTouch = ('ontouchstart' in win) || (win.navigator && win.navigator.maxTouchPoints > 0),
+	DEFAULT_MIN_OFFSET = 30,
 	touchStart = hasTouch?'touchstart':'mousedown',
 	touchMove = hasTouch?'touchmove':'mousemove',
 	touchEnd = hasTouch?'touchend':'mouseup',
 	touchCancel = hasTouch?'touchcancel':'mouseleave',
 	undefined;
 
+	// Per-instance minimum drag distance (was a shared module-level variable).
+	function minOffsetFor(slipObj) {
+		return slipObj && slipObj.instance && slipObj.instance.option
+			? slipObj.instance.option.minOffset
+			: DEFAULT_MIN_OFFSET;
+	}
+
+	// Read a numeric option without letting `||` swallow valid zero values.
+	function numberOption(value, name, fallback, min) {
+		if(value == null) return fallback;
+		var n = (typeof value == 'string' && value.trim() !== '') ? Number(value) : value;
+		if(typeof n != 'number' || !isFinite(n) || n < min) {
+			throw new RangeError('jmSlip: option.' + name + ' must be a finite number >= ' + min);
+		}
+		return n;
+	}
+
+	// Normalise legacy mousewheel / standard wheel / Firefox DOMMouseScroll.
+	function wheelDelta(evt) {
+		if(!evt) return 0;
+		if(typeof evt.wheelDelta == 'number') return evt.wheelDelta;
+		if(typeof evt.deltaY == 'number') return -evt.deltaY;
+		if(typeof evt.detail == 'number') return -evt.detail * 40;
+		return 0;
+	}
+
+	// Pick exactly ONE wheel event. Chrome dispatches both `wheel` and the
+	// legacy `mousewheel` for the same scroll; binding all three would apply
+	// every delta twice (and double the zoom / page offset).
+	var WHEEL_EVENTS = (function() {
+		if(win && 'onwheel' in win) return ['wheel'];
+		if(doc && 'onmousewheel' in doc) return ['mousewheel'];
+		return ['DOMMouseScroll'];
+	})();
+
 	function jmSlip(el, mode, option) {
-		if(typeof mode == 'object') {
+		if(mode && typeof mode == 'object') {
 			option = mode;
 			mode = option.mode || 'page';
 		}
-		option = option || {};
-		option.duration = option.duration || 500;
+		// Copy the options: defaults must never be written back into the
+		// caller's object (which may be shared between instances).
+		var source = option || {};
+		option = {};
+		for(var k in source) {
+			if(Object.prototype.hasOwnProperty.call(source, k)) option[k] = source[k];
+		}
+		option.duration = numberOption(option.duration, 'duration', 500, 0);
 		option.durations = option.duration / 1000;
-		if(typeof option.minOffset == 'string'){
-			minOffset = Number(option.minOffset);
-		}
+		option.minOffset = numberOption(option.minOffset, 'minOffset', DEFAULT_MIN_OFFSET, 0);
 		//滑动项补充大小差异
-		option.itemOffWidth = option.itemOffWidth || 0;
-		option.itemOffHeight = option.itemOffHeight || 0;
-		option.zIndex = option.zIndex || 10000;
+		option.itemOffWidth = numberOption(option.itemOffWidth, 'itemOffWidth', 0, -Infinity);
+		option.itemOffHeight = numberOption(option.itemOffHeight, 'itemOffHeight', 0, -Infinity);
+		option.zIndex = numberOption(option.zIndex, 'zIndex', 10000, -Infinity);
 
-		mode = mode || option.mode || 'page';	
-		minOffset = option.minOffset || minOffset;
-			
+		mode = mode || option.mode || 'page';
+
 		if(typeof el == 'string') {
-			el = doc.getElementById(el);
+			el = doc && doc.getElementById ? doc.getElementById(el) : null;
 		}
-		if(el && el.length) {
+		if(el && el.length && !el.nodeType) {
 			el = el[0];
+		}
+		if(!el || !el.nodeType) {
+			throw new TypeError('jmSlip: element must be a DOM node, an id string, or an array-like object');
 		}
 		return new slip(el, mode, option);
 	}
 
 	function slip(el, mode, option) {
-		this.target = this.container = el;		
-		this.containerInner = this.container.children[0];
+		this.target = this.container = el;
+		this.containerInner = this.container.children && this.container.children[0];
+		if(!this.containerInner) {
+			throw new TypeError('jmSlip: the container must have a first child element holding the sliding items');
+		}
+		// Let the component own the gesture instead of the browser scrolling.
+		css(this.container, 'touch-action', 'none');
 		this.mode = mode;
 		this.page = option.page || 0;
 		this.offsetY = 0;
 		this.option = option;
 		//css(doc.body, 'margin', 0);
 		this.slipObj = null;
+		this._handlers = null;
+		this._wheelInterval = 0;
 		switch(mode) {
 			case 'page': {
 				this.slipObj = new pageSlip(this);
@@ -89,22 +148,58 @@ var slip = (function(win, doc) {
 				break;
 			}
 		}
+		if(!this.slipObj) {
+			throw new TypeError("jmSlip: unknown mode '" + mode + "'. Expected: page, item, scroll, scrollItem, drag, scale");
+		}
 		//css(el, 'overflow', 'hidden');
 		this.reset();		
 		this.bindEvent();//初始化手指滑动事件		
 		this.auto();
 	}
 
-	//销毁组件
-	slip.prototype.destory = function() {
+	//销毁组件（destroy 为标准名，destory 保留为兼容别名）
+	slip.prototype.destroy = function() {
 		this.bindEvent(false); //解绑事件
 		if(this.interval) {
 			clearTimeout(this.interval);
+			this.interval = 0;
 		}
-	}
+		if(this._wheelInterval) {
+			clearTimeout(this._wheelInterval);
+			this._wheelInterval = 0;
+		}
+		if(this.slipObj && this.slipObj.last_target) this.slipObj.last_target = null;
+		this._destroyed = true;
+		return this;
+	};
+	slip.prototype.destory = slip.prototype.destroy;
 
 	slip.prototype.bindEvent = function(b) {
 		var self = this;
+		if(this._destroyed && b !== false) return; // never resurrect a destroyed instance
+		if(b === false) {
+			// Unbind the exact handlers that were bound (not fresh closures).
+			if(this._handlers) {
+				var h = this._handlers;
+				var wheelTarget = this._wheelTarget || this.container;
+				unbind(this.target, touchStart, h.onTouchStart);
+				unbind(this.container, touchMove, h.onTouchMove);
+				unbind(this.container, touchEnd, h.onTouchEnd);
+				unbind(this.container, touchCancel, h.onTouchEnd);
+				if(h.onMousewheel) {
+					for(var wi = 0; wi < WHEEL_EVENTS.length; wi++) {
+						unbind(wheelTarget, WHEEL_EVENTS[wi], h.onMousewheel);
+					}
+				}
+				this._handlers = null;
+			}
+			if(this._wheelInterval) {
+				clearTimeout(this._wheelInterval);
+				this._wheelInterval = 0;
+			}
+			return;
+		}
+		if(this._handlers) return; // never bind twice
 		this.touched = false;
 		var startPosition = [],prePosition = [],curposition = [];
 		var ydirection = '',xdirection=''; 
@@ -122,13 +217,19 @@ var slip = (function(win, doc) {
 				var stop = self.option.onTouchStart.call(self.slipObj, evt);
 				//如果回调返回false , 则中止当前滑动
 				if(stop === false) {
+					self.touched = false;
+					isMoved = false;
 					return;
 				}
 			}	
 			//执行滑动对象的touch事件
 			if(self.slipObj && self.slipObj.onTouchStart) {
 				var ret = self.slipObj.onTouchStart(evt);
-				if(ret === false) return;
+				if(ret === false) {
+					self.touched = false;
+					isMoved = false;
+					return;
+				}
 			}
 			if(self.interval) {
 				clearTimeout(self.interval);
@@ -140,8 +241,8 @@ var slip = (function(win, doc) {
 			if(evt.touches && evt.touches.length) {
 				for(var i=0;i<evt.touches.length;i++) {
 					curposition[i] = prePosition[i] = {
-						x: evt.touches[i].clientX || evt.touches[i].pageX,
-						y: evt.touches[i].clientY || evt.touches[i].pageY
+						x: typeof evt.touches[i].clientX == 'number' ? evt.touches[i].clientX : evt.touches[i].pageX,
+						y: typeof evt.touches[i].clientY == 'number' ? evt.touches[i].clientY : evt.touches[i].pageY
 					};
 					startPosition[i] = {
 						x: curposition[i].x,
@@ -151,8 +252,8 @@ var slip = (function(win, doc) {
 			}
 			else {
 				curposition[0] = prePosition[0] = {
-					x: evt.clientX || evt.pageX,
-					y: evt.clientY || evt.pageY
+					x: typeof evt.clientX == 'number' ? evt.clientX : evt.pageX,
+					y: typeof evt.clientY == 'number' ? evt.clientY : evt.pageY
 				};
 				startPosition[0] = {
 					x: curposition[0].x,
@@ -189,8 +290,8 @@ var slip = (function(win, doc) {
 				if(evt.touches && evt.touches.length) {
 					for(var i=0;i<evt.touches.length;i++) {
 						curposition[i] = {
-							x: evt.touches[i].clientX || evt.touches[i].pageX,
-							y: evt.touches[i].clientY || evt.touches[i].pageY
+							x: typeof evt.touches[i].clientX == 'number' ? evt.touches[i].clientX : evt.touches[i].pageX,
+							y: typeof evt.touches[i].clientY == 'number' ? evt.touches[i].clientY : evt.touches[i].pageY
 						};
 						//滑动当前移动距离，让页面跟随手指移动
 						if(prePosition[i]) {
@@ -218,8 +319,8 @@ var slip = (function(win, doc) {
 				}
 				else {
 					curposition[0] = {
-						x: evt.clientX || evt.pageX,
-						y: evt.clientY || evt.pageY
+						x: typeof evt.clientX == 'number' ? evt.clientX : evt.pageX,
+						y: typeof evt.clientY == 'number' ? evt.clientY : evt.pageY
 					};
 					if(prePosition[0]) {
 						//滑动当前移动距离，让页面跟随手指移动
@@ -264,10 +365,8 @@ var slip = (function(win, doc) {
 					isMoved = true;
 					off = self.slipObj.offset(offsetPos[0].x, offsetPos[0].y, evt);	
 				}
-				//如果返回中止，则中止此次移动事件
-				if(off === false) {
-					onTouchEnd.call(this, evt);
-				}	
+				// Returning false skips this move only. It must NOT synthesise a
+				// touch-end event: that used to leave the component stuck.
 			}
 		}
 
@@ -289,8 +388,8 @@ var slip = (function(win, doc) {
 							};
 						}
 						curposition[i] = {
-							x: evt.touches[i].clientX || evt.touches[i].pageX,
-							y: evt.touches[i].clientY || evt.touches[i].pageY
+							x: typeof evt.touches[i].clientX == 'number' ? evt.touches[i].clientX : evt.touches[i].pageX,
+							y: typeof evt.touches[i].clientY == 'number' ? evt.touches[i].clientY : evt.touches[i].pageY
 						};
 					}
 				}
@@ -307,21 +406,23 @@ var slip = (function(win, doc) {
 						prePosition[0].y = curposition[0].y;
 					}
 					curposition[0] = {
-						x: evt.clientX || evt.pageX,
-						y: evt.clientY || evt.pageY
+						x: typeof evt.clientX == 'number' ? evt.clientX : evt.pageX,
+						y: typeof evt.clientY == 'number' ? evt.clientY : evt.pageY
 					};
 				}
 
 				evt.offsetPos = offsetPos;//滑动参数，计算
 
+				var skipEnd = false;
 				if(self.option && self.option.onTouchEnd && typeof self.option.onTouchEnd == 'function') {
 					var stop = self.option.onTouchEnd.call(self.slipObj, evt, {
 						offx:offsetPos[0]?offsetPos[0].absoluteX:0,
 						offy:offsetPos[0]?offsetPos[0].absoluteY:0
 					});
-					//如果回调返回false , 则中止当前滑动
+					// Returning false cancels the final action only. Transition,
+					// touched state and auto-play must still be restored.
 					if(stop === false) {
-						return;
+						skipEnd = true;
 					}
 				}
 
@@ -336,57 +437,60 @@ var slip = (function(win, doc) {
 
 				evt.startTime = startTime;//记录滑动起始时间
 
-				if(isMoved && self.slipObj.end) self.slipObj.end(offsetPos[0].absoluteX, offsetPos[0].absoluteY, xdirection, ydirection, evt);
+				if(!skipEnd && isMoved && self.slipObj.end && offsetPos[0]) {
+					self.slipObj.end(offsetPos[0].absoluteX, offsetPos[0].absoluteY, xdirection, ydirection, evt);
+				}
 
 				self.touched = false;
-				self.auto();
+				if(!self._destroyed) self.auto();
 				//evt.stopPropagation && evt.stopPropagation();
 				//evt.preventDefault && evt.preventDefault();//阻止默认响应
 			}			
 		}
 
 		//滚轮事件
-		var wheelInterval = 0;
 		var wheelOff = 0;
 		function onMousewheel(e){
 			//清除上次的翻页事件，用户还在滚动中
-			if(wheelInterval) clearTimeout(wheelInterval);
-			e = e || win.event;	
-			var off = e.wheelDelta;	
-			wheelOff += off;		
-			
-			self.slipObj.offset(0, off, e);
-			wheelInterval = setTimeout(function(){
-				//self.transition(true, null, 'linear');//动画
+			if(self._wheelInterval) clearTimeout(self._wheelInterval);
+			e = e || win.event;
+			var off = wheelDelta(e);
+			wheelOff += off;
+
+			if(self.slipObj && self.slipObj.offset) self.slipObj.offset(0, off, e);
+			self._wheelInterval = setTimeout(function(){
 				if(wheelOff > 0) self.slipObj.previous && self.slipObj.previous();
 				else if(wheelOff < 0) self.slipObj.next && self.slipObj.next();
 				wheelOff = 0;
-			},500);	
+				self._wheelInterval = 0;
+			},500);
 		}
 
-		if(b === false) {
-			unbind(this.target, touchStart, onTouchStart);
-			unbind(this.container, touchMove, onTouchMove);
-			unbind(this.container, touchEnd, onTouchEnd);
-			unbind(this.container, touchCancel, onTouchEnd);	
-		}
-		else {			
-			bind(this.target, touchStart, onTouchStart);
-			bind(this.container, touchMove, onTouchMove);
-			bind(this.container, touchEnd, onTouchEnd);
-			bind(this.container, touchCancel, onTouchEnd);	
-		}
+		// Cache the exact closures so destroy() can unbind them.
+		this._handlers = {
+			onTouchStart: onTouchStart,
+			onTouchMove: onTouchMove,
+			onTouchEnd: onTouchEnd,
+			onMousewheel: this.option.mousewheel ? onMousewheel : null
+		};
+		bind(this.target, touchStart, onTouchStart);
+		bind(this.container, touchMove, onTouchMove);
+		bind(this.container, touchEnd, onTouchEnd);
+		bind(this.container, touchCancel, onTouchEnd);
 
-		//如果需要支持滚轮
+		// Wheel listeners belong to this element, not the document, so several
+		// instances on one page no longer interfere with each other.
 		if(this.option.mousewheel) {
-			if(b === false) unbind(doc, 'mousewheel', onMousewheel);
-			else {			
-				bind(doc, 'mousewheel', onMousewheel);
+			this._wheelTarget = this.target;
+			// Only one event is bound; see WHEEL_EVENTS above.
+			for(var wj = 0; wj < WHEEL_EVENTS.length; wj++) {
+				bind(this._wheelTarget, WHEEL_EVENTS[wj], onMousewheel);
 			}
 		}
 	}
 
 	slip.prototype.auto = function() {
+		if(this._destroyed) return;
 		//如果指定了切换时间，则轮循切换
 		if(this.option.changeTime && this.slipObj.go) {
 			var dir = 1;
@@ -487,16 +591,12 @@ var slip = (function(win, doc) {
             this.children = [];
         }
 		if(this.instance && this.instance.containerInner) {
-			var lastIndex = 1;
 			for(var i=0;i<this.instance.containerInner.children.length;i++) {
 				var ch = this.instance.containerInner.children[i];
 				//如果在属性中没有设置page属性，则表示为后续补齐的，设置其page
 				var index = attr(ch, 'data-page');
-				if(typeof index == 'undefined') {
-					attr(ch, 'data-page', i%lastIndex);
-				}
-				else {
-					lastIndex = parseInt(index, 10)+1;
+				if(index == null) {
+					attr(ch, 'data-page', String(i));
 				}
 				var exists = false;
 				for(var j=0;j<this.children.length;j++) {
@@ -523,7 +623,7 @@ var slip = (function(win, doc) {
                 else {
                     var offy = 0;
                     if(this.option.repeat) {
-                        offx = (i - this.page) * this.pageHeight;
+                        offy = (i - this.page) * this.pageHeight;
                     }
                     else {
                         offy = i < this.page?-this.pageHeight:i>this.page?this.pageHeight:0;
@@ -557,10 +657,12 @@ var slip = (function(win, doc) {
 		var len = this.instance.containerInner.children.length;
 		//如果设置了循环，且只有二个元素，则复制为4个
 		if(len == 2 && this.option.loop) {
+			// Clone nodes instead of rebuilding innerHTML: the latter re-parses the
+			// whole subtree and drops listeners/state on existing children.
 			for(var i=0;i<len;i++) {
 				var item = this.instance.containerInner.children[i];
-				attr(item, 'data-page', i);
-				this.instance.containerInner.innerHTML += this.instance.containerInner.children[i].outerHTML;
+				attr(item, 'data-page', String(i));
+				this.instance.containerInner.appendChild(item.cloneNode(true));
 			}
 		}	
 
@@ -698,13 +800,13 @@ var slip = (function(win, doc) {
 	 */
 	pageSlip.prototype.end = function(offx, offy, xdirection, ydirection, evt) {
 		if(this.instance.option.direction == 'x') {
-			if(offx > minOffset && xdirection == 'right') this.previous();
-			else if(offx < -minOffset && xdirection == 'left') this.next();
+			if(offx > minOffsetFor(this) && xdirection == 'right') this.previous();
+			else if(offx < -minOffsetFor(this) && xdirection == 'left') this.next();
 			else this.go(this.page);
 		}
 		else {
-			if(offy > minOffset && ydirection == 'down') this.previous();
-			else if(offy < -minOffset && ydirection == 'up') this.next();
+			if(offy > minOffsetFor(this) && ydirection == 'down') this.previous();
+			else if(offy < -minOffsetFor(this) && ydirection == 'up') this.next();
 			else this.go(this.page);
 		}		
 	};
@@ -746,10 +848,14 @@ var slip = (function(win, doc) {
 		//翻页前先调用自定义回调，如果返回false则中止
 		if(this.option && this.option.onPageStart && typeof this.option.onPageStart == 'function') {
 			var stop = this.option.onPageStart.call(this, page, oldpage, actionType);
-			//如果回调返回false , 则中止
+			// Returning false cancels the switch. Do NOT call reset() here:
+			// reset() calls go(), which fires this callback again (recursion).
 			if(stop === false) {
-				this.reset();
+				this.move(0, 0);
 				return;
+			}
+			if(typeof stop == 'number' && isFinite(stop)) {
+				page = Math.max(0, Math.min(len - 1, Math.floor(stop)));
 			}
 		}
 
@@ -861,8 +967,10 @@ var slip = (function(win, doc) {
 
 		//翻页后先调用自定义回调，以备做一些其它自定义处理
 		if(this.option && this.option.onPageEnd && typeof this.option.onPageEnd == 'function') {
-			var pageindex = curpage?(attr(curpage, 'data-page') || page):page;
-			this.option.onPageEnd.call(this, oldpage, pageindex, actionType);
+			var pageindex = curpage ? attr(curpage, 'data-page') : null;
+			var pageNumber = pageindex == null ? page : Number(pageindex);
+			if(!isFinite(pageNumber)) pageNumber = page;
+			this.option.onPageEnd.call(this, oldpage, pageNumber, actionType);
 		}
 		//执行动画结束后效果处理
 		//this.pageEnd(oldpage, page);
@@ -1020,7 +1128,8 @@ var slip = (function(win, doc) {
 					/*var time = evt.timeStamp - evt.startTime;
 					var s = offx / time * 100;
 					if(s < -maxoff) s = -maxoff;*/
-					minOffset && this.offset(xdirection=='left'?-minOffset:minOffset, false);
+					var stepX = minOffsetFor(this);
+					stepX && this.offset(xdirection=='left'?-stepX:stepX, false);
 				}
 			}
 		}
@@ -1032,7 +1141,8 @@ var slip = (function(win, doc) {
 					this.move(false , -maxoff);
 				}
 				else {
-					minOffset && this.offset(false, ydirection=='up'?-minOffset:minOffset);
+					var stepY = minOffsetFor(this);
+					stepY && this.offset(false, ydirection=='up'?-stepY:stepY);
 				}
 			}
 		}
@@ -1053,7 +1163,10 @@ var slip = (function(win, doc) {
 		this.transition = 'transform '+this.option.durations+'s ease-in-out 0s';
 	}
 	//简单继承pageslip
-	itemSlip.prototype = new pageSlip();
+	// Prototype inheritance without instantiating pageSlip: the old form
+	// created a shared prototype-level children array across all instances.
+	itemSlip.prototype = Object.create(pageSlip.prototype);
+	itemSlip.prototype.constructor = itemSlip;
 
 	/**
 	 * 重置和初始化滑动对象
@@ -1090,7 +1203,7 @@ var slip = (function(win, doc) {
 	itemSlip.prototype.end = function(offx, offy, xdirection, ydirection, evt) {
 		var suc = false;
 		if(this.instance.option.direction == 'x') {
-			if(offx > minOffset || offx < -minOffset) {
+			if(offx > minOffsetFor(this) || offx < -minOffsetFor(this)) {
 				var index = this.getCenterIndex(offx, offy);
 				//如果有自定义选中的项，则采用自定义的结果
 				if(this.instance.option.selectHandler) {
@@ -1104,7 +1217,7 @@ var slip = (function(win, doc) {
 			}
 		}
 		else {
-			if(offy > minOffset || offy < -minOffset) {
+			if(offy > minOffsetFor(this) || offy < -minOffsetFor(this)) {
 				var index = this.getCenterIndex(offx, offy);
 				//如果有自定义选中的项，则采用自定义的结果
 				if(this.instance.option.selectHandler) {
@@ -1134,13 +1247,13 @@ var slip = (function(win, doc) {
 
 		//翻页前先调用自定义回调，如果返回false则中止
 		if(this.option && this.option.onPageStart && typeof this.option.onPageStart == 'function') {
-			var stop = this.option.onPageStart.call(this, page);
+			var stop = this.option.onPageStart.call(this, page, oldpage, null);
 			//如果回调返回false , 则中止
 			if(stop === false) {
 				return false;
 			}
-			else if(typeof stop == 'number') {
-				page = stop;
+			else if(typeof stop == 'number' && isFinite(stop)) {
+				page = Math.max(0, Math.min(len - 1, Math.floor(stop)));
 			}
 		}	
 
@@ -1174,7 +1287,7 @@ var slip = (function(win, doc) {
 
 		//翻页后先调用自定义回调，以备做一些其它自定义处理
 		if(this.option && this.option.onPageEnd && typeof this.option.onPageEnd == 'function') {
-			this.option.onPageEnd.call(this, oldpage, page);
+			this.option.onPageEnd.call(this, oldpage, page, null);
 		}
 		//执行动画结束后效果处理
 		this.pageEnd(oldpage, page);
@@ -1484,6 +1597,7 @@ var slip = (function(win, doc) {
 	 * 滑动结束事件
 	 */
 	scrollItemSlip.prototype.end = function(offx, offy, xdirection, ydirection, evt) {
+		var tx = 0, ty = 0;
 		var target = evt.target||evt.srcElement;		
 		//如果有指定CSS选择器
 		if(this.option.itemSelector) {
@@ -1492,7 +1606,7 @@ var slip = (function(win, doc) {
 		}
 
 		if(this.instance.option.direction == 'x') {
-			var tx = Number(attr(target, 'data-offsetx'))||0;
+			tx = Number(attr(target, 'data-offsetx'))||0;
 			if(!tx) return;
 
 			//如果只能左向滑，则复位
@@ -1514,7 +1628,7 @@ var slip = (function(win, doc) {
 			}
 		}
 		else {
-			var ty = Number(attr(target, 'data-offsety'))||0;
+			ty = Number(attr(target, 'data-offsety'))||0;
 			if(!ty) return;
 
 			if((ty > 0 && this.option.orientation == 'top')||(ty<0 && this.option.orientation == 'bottom')) this.reset(target);
@@ -1608,7 +1722,7 @@ var slip = (function(win, doc) {
 			else if(preDis > curDis) {
 				per = this.scaleX * Math.min(1 - offxper, 1- offyper);
 			}
-			this.scale(per);
+			this.scale(per, evt);
         }
         //如果支持滑动。则单指表示
         else if(this.option.supportTranslate && evt.offsetPos && evt.offsetPos.length == 1) {
@@ -1625,16 +1739,12 @@ var slip = (function(win, doc) {
 
             this.set(0, this.offsetX + offx, this.offsetY + offy);            
 		}
-		else if(evt.wheelDelta) {
-			console.log(evt.wheelDelta)
-			var per = 0;
-			if(evt.wheelDelta > 0) {
-				per = this.scaleX + this.scaleX * evt.wheelDelta / 1000;
-			}
-			else {
-				per = this.scaleX * (1 + evt.wheelDelta / 1000);
-			}
-			this.scale(per);
+		else if(wheelDelta(evt)) {
+			var delta = wheelDelta(evt);
+			var per = delta > 0
+				? this.scaleX + this.scaleX * delta / 1000
+				: this.scaleX * (1 + delta / 1000);
+			this.scale(per, evt);
 		}
 	}
 
@@ -1642,11 +1752,11 @@ var slip = (function(win, doc) {
 	scaleSlip.prototype.scale = function(per, evt) {
 		if(per) {
 			if(this.option.onScaleStart) {
-				var o = this.option.onScaleStart(per, evt);
+				var o = this.option.onScaleStart.call(this, per, evt);
 				if(o === false) return;
 			}
 			this.set(per);//缩放
-			this.option.onScaleEnd && this.option.onScaleEnd(per, evt);
+			this.option.onScaleEnd && this.option.onScaleEnd.call(this, per, evt);
 			evt && evt.preventDefault && evt.preventDefault();//阻止默认响应
 		}
 	}
@@ -1658,9 +1768,10 @@ var slip = (function(win, doc) {
 	scaleSlip.prototype.set = function(v, offx, offy) {
 		if(!v) v = this.scaleX;
 		//如果指定了最大缩放比例
-		if(this.option.maxScale && v > this.option.maxScale) v = this.option.maxScale;
+		// Explicit 0 is a valid limit, so do not use a truthy check here.
+		if(this.option.maxScale != null && v > this.option.maxScale) v = this.option.maxScale;
 		//如果指定了最小缩放比例
-		if(this.option.minScale && v < this.option.minScale) v = this.option.minScale;
+		if(this.option.minScale != null && v < this.option.minScale) v = this.option.minScale;
 
         if(typeof offx == 'undefined') offx = this.offsetX;
         if(typeof offy == 'undefined') offy = this.offsetY;
@@ -1691,9 +1802,17 @@ var slip = (function(win, doc) {
 			}
 		}
 		else {
+			if(!el || !el.style) return;
 			for(var i=0;i<map.length;i++) {
-				//el.css && el.css(map[i] + name,value);
-				el.style && (el.style[map[i] + name] = value);
+				var prop = map[i] + name;
+				// Hyphenated names (vendor prefixes, touch-action, min-width)
+				// need setProperty; direct assignment silently does nothing.
+				if(prop.indexOf('-') >= 0 && el.style.setProperty) {
+					el.style.setProperty(prop, value);
+				}
+				else {
+					el.style[prop] = value;
+				}
 			}
 		}		
 	}
@@ -1707,7 +1826,7 @@ var slip = (function(win, doc) {
 			}
 			return;
 		}
-		var cls = el.className || '';
+		var cls = (typeof el.className == 'string' ? el.className : (el.className && el.className.baseVal)) || '';
 		var clsarr = cls.split(' ');
 		var exists = false;
 		var l = clsarr.length;
@@ -1721,7 +1840,8 @@ var slip = (function(win, doc) {
 		//只有当存在但要删除或不存在但要添加才需要重置样式
 		if((exists && !b) || (!exists && b)) {
 			b && clsarr.push(name);
-			el.className = clsarr.join(' ');
+			if(typeof el.className == 'object' && el.setAttribute) el.setAttribute('class', clsarr.join(' '));
+			else el.className = clsarr.join(' ');
 		}
 	}
 
@@ -1742,19 +1862,11 @@ var slip = (function(win, doc) {
 			}
 			return v;
 		}
-		var att = el.attributes[name];
 		if(typeof value == 'undefined') {
-			return att?att.nodeValue:null;
+			return el.getAttribute ? el.getAttribute(name) : null;
 		}
-		else {
-			if(att) att.nodeValue = value;
-			else {
-				att = doc.createAttribute(name);
-				att.nodeValue = value;
-				el.setAttributeNode(att);
-			}
-			return value;
-		}
+		el.setAttribute(name, value);
+		return value;
 	}
 
 	/**
@@ -1765,12 +1877,23 @@ var slip = (function(win, doc) {
 	 * @param {string} name 事件名称
 	 * @param {function} fun 事件委托
 	 */
+	// Detect passive-listener support: document-level touchmove is passive by
+	// default in Chrome, so preventDefault() needs an explicit passive:false.
+	var bindOptions = false;
+	try {
+		var probe = Object.defineProperty({}, 'passive', {
+			get: function() { bindOptions = { passive: false }; return false; }
+		});
+		if(win.addEventListener) win.addEventListener('jmSlipPassiveProbe', null, probe);
+		if(win.removeEventListener) win.removeEventListener('jmSlipPassiveProbe', null, probe);
+	} catch(e) { bindOptions = false; }
+
 	function bind(target,name,fun) {
-		if(target.addEventListener) {
-	        target.addEventListener(name,fun, false);
+		if(target && target.addEventListener) {
+	        target.addEventListener(name, fun, bindOptions);
 	        return true;
 	    }
-	    else if(target.attachEvent) {
+	    else if(target && target.attachEvent) {
 	        return target.attachEvent("on"+name,fun);
 	    }  
 	    return false;
@@ -1785,11 +1908,11 @@ var slip = (function(win, doc) {
 	 * @param {function} fun 事件委托
 	 */
 	function unbind(target,name,fun) {
-		if(target.removeEventListener) {
+		if(target && target.removeEventListener) {
 	        target.removeEventListener(name,fun, false);
 	        return true;
 	    }
-	    else if(target.detachEvent) {
+	    else if(target && target.detachEvent) {
 	        return target.detachEvent("on"+name,fun);
 	    }  
 	    return false;
@@ -1803,17 +1926,23 @@ var slip = (function(win, doc) {
 
 	//查找元素父级，通过选择器先择
 	function elParent(el, selector) {
-		var parent = el.parentElement||el.parentNode;
-		if(!parent) return null;
-		var sel = parent.querySelector(selector);
-		if(sel && sel == el) return el;
-		//如果没有找到，，则继续从父元素找，直接找完为止
-		else {
-			return elParent(parent, selector);
+		// Real closest() semantics: walk up from the touched node and return
+		// the first ancestor (or the node itself) matching the selector.
+		var node = el;
+		while(node && node.nodeType === 1) {
+			if(node.matches) {
+				if(node.matches(selector)) return node;
+			}
+			else if(node.msMatchesSelector && node.msMatchesSelector(selector)) {
+				return node;
+			}
+			node = node.parentElement || node.parentNode;
 		}
+		return null;
 	}
 
-	return win.jmSlip = jmSlip;
-})(window, document);
+	return jmSlip;
+})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this),
+   typeof document !== 'undefined' ? document : null);
 
-export default slip;
+export default jmSlipRuntime;
