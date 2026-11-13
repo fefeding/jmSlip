@@ -9,7 +9,7 @@ A dependency-free H5 (mobile web) touch / mouse sliding component: paging, centr
 - One UMD source of truth: loadable via `<script>`, AMD, or `require()`.
 - Handwritten TypeScript declarations and a DOM-stub test suite.
 
-[Project home](http://fefeding.github.io/jmSlip/) · [Repository](https://github.com/jiamao/jmSlip) · [Demos](./demo/)
+[Project home](http://fefeding.github.io/jmSlip/) · [Repository](https://github.com/fefeding/jmSlip) · [Demos](./demo/)
 
 ## Which file should I load?
 
