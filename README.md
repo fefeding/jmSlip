@@ -24,7 +24,7 @@ A dependency-free H5 (mobile web) touch / mouse sliding component: paging, centr
 <script src="../../dist/jmslip.js"></script>
 ```
 
-The component itself has no dependencies. The pages under `demo/` use **Zepto** (`$`) for their own UI code, and the root `index.html` uses jQuery — neither is required by jmSlip.
+The component itself has no dependencies. The pages under `demo/` use a tiny local helper (`demo/dom.js`) for their own UI code instead of any external library, and the root `index.html` also has no third-party dependency — none of it is required by jmSlip.
 
 ## Quick start
 

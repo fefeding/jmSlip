@@ -24,7 +24,7 @@
 <script src="../../dist/jmslip.js"></script>
 ```
 
-组件本身零依赖；`demo/` 下的页面自身使用 **Zepto**（`$`）做 UI，根 `index.html` 使用 jQuery，这些都不是 jmSlip 的依赖。
+组件本身零依赖；`demo/` 下的页面用本地极简助手 `demo/dom.js` 做自身 UI 代码，不再依赖任何外部库，根 `index.html` 同样不引入第三方依赖——这些都不是 jmSlip 的依赖。
 
 ## 快速开始
 
